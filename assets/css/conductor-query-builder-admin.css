@@ -1,0 +1,413 @@
+/**
+ * Conductor Query Builder Admin
+ */
+
+/* Navigation Tabs */
+.conductor-qb-tabs-wrapper h2.conductor-qb-tabs,
+#poststuff .conductor-qb-tabs-wrapper h2.conductor-qb-tabs {
+	margin: 0;
+	padding: 8px 0 0;
+	border-bottom: 1px solid #ccc;
+}
+
+.conductor-qb-tabs .nav-tab:first-child {
+	margin-left: 0;
+}
+
+.conductor-qb-tabs .nav-tab-active {
+	outline: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+/* Meta Box Tab Content */
+.conductor-qb-query-builder-meta-box-tab-content-wrapper {
+	padding: 1em;
+	background-color: #f1f1f1;
+	border: 1px solid #ccc;
+	border-top: none;
+
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.conductor-qb-tab {
+	display: none;
+}
+
+.conductor-qb-tab.active {
+	display: block;
+}
+
+/**
+ * Action Buttons
+ */
+.conductor-qb-button-right {
+	float: right;
+}
+
+.conductor-qb-button .conductor-branding-c {
+	padding-right: 3px;
+	font-weight: 900;
+}
+
+.conductor-qb-button .dashicons {
+	padding-top: 3px;
+	line-height: 1.25em;
+}
+
+.conductor-qb-button .dashicons-minus {
+	font-weight: bold;
+}
+
+/**
+ * General
+ */
+/* Clearing Elements */
+.conductor-qb-clear {
+	clear: both;
+}
+
+.conductor-qb-cf {
+	zoom: 1;
+}
+
+.conductor-qb-cf:before,
+.conductor-qb-cf:after {
+	content: '';
+	display: table;
+}
+
+.conductor-qb-cf:after {
+	clear: both;
+}
+
+/* Loading elements */
+.conductor-qb-spinner.spinner {
+	width: 100%;
+	min-height: 4em;
+	margin: 0;
+	background-position: center;
+	float: none;
+}
+
+.conductor-qb-spinner.spinner * {
+	opacity: 0;
+}
+
+/* Select2 */
+.conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select2 {
+	width: 300px;
+}
+
+.conductor-shortcode-ui-visible .conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select2 {
+	width: 168px;
+}
+
+.conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select-select2-container .select2-selection {
+	min-height: 30px;
+	border-color: #aaa;
+}
+
+.conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select-select2-container li {
+	margin-bottom: 0;
+}
+
+/* TODO: This causes Select2 to return zero results when a valid search query is used, we need to modify Select2 results logic instead */
+/*.conductor-qb-select-select2-results [aria-selected="true"] {
+	display: none;
+}*/
+
+.conductor-qb-select-select2-results [aria-disabled="true"] {
+	display: none;
+}
+
+/**
+ * Conductor Widget
+ */
+.conductor-qb-query-builder-meta-box-tab-content-wrapper .widget {
+	margin-bottom: 0;
+}
+
+.conductor-qb-query-builder-meta-box-tab-content .conductor-section-title {
+	display: none;
+}
+
+.conductor-qb-query-builder-meta-box-tab-content .conductor-section {
+	margin-bottom: 0;
+}
+
+/* CSS ID */
+.conductor-qb-query-builder-meta-box-tab-content .conductor-css-id {
+	display: none;
+}
+
+/* Post In */
+.conductor-qb-query-builder-meta-box-tab-content-wrapper.conductor-qb-advanced-mode .conductor-post-in {
+	display: none;
+}
+
+/* Post Not In */
+.conductor-qb-query-builder-meta-box-tab-content-wrapper.conductor-qb-advanced-mode .conductor-post-not-in {
+	display: none;
+}
+
+/**
+ * Query Builder
+ */
+.conductor-qb-meta-box-query-builder-mode {
+	margin: 1em 0 0;
+}
+
+.conductor-qb-meta-box-query-builder-mode-title {
+	margin: 0;
+}
+
+.conductor-qb-meta-box-query-builder-groups {
+}
+
+.conductor-qb-meta-box-query-builder-clause-group-inner {
+	padding: 1em;
+	background: #fcfcfc;
+	border: 1px solid #ddd;
+}
+
+.conductor-qb-meta-box-query-builder-clause-group-inner:first-child {
+	margin-top: 0.5em;
+	border-bottom: none;
+}
+
+.conductor-qb-meta-box-query-builder-groups:first-of-type .conductor-qb-meta-box-query-builder-clause-group-inner:first-child,
+#conductor-query-builder-conductor-widget-content-section {
+	margin-top: 1em;
+}
+
+.conductor-qb-meta-box-query-builder-clause-group-inner +.conductor-qb-meta-box-query-builder-clause-group-inner {
+	border-top: none;
+	border-bottom: none;
+}
+
+.conductor-qb-meta-box-query-builder-clause-group-inner:last-child {
+	margin-bottom: 0.5em;
+	border-bottom: 1px solid #ddd;
+}
+
+.conductor-qb-meta-box-query-builder-groups:last-of-type .conductor-qb-meta-box-query-builder-clause-group-inner:last-child {
+	margin-top: 1em;
+}
+
+.conductor-qb-meta-box-query-builder-group-title {
+	margin: 1em 0;
+}
+
+.conductor-qb-meta-box-query-builder-group-title:first-of-type {
+	margin-top: 0;
+}
+
+.conductor-qb-meta-box-query-builder-sub-clause-group-inner {
+	padding: 0 0 0.5em;
+}
+
+.conductor-qb-meta-box-query-builder-sub-clause-group-inner .conductor-qb-add-sub-clause-group-button {
+	display: none;
+}
+
+.conductor-qb-meta-box-query-builder-sub-clause-group-inner:last-of-type .conductor-qb-add-sub-clause-group-button {
+	display: inline-block;
+}
+
+.conductor-qb-meta-box-query-builder-sub-clause-group-inner .conductor-qb-descriptive-label {
+	padding-left: 0.5em;
+	color: #888;
+	text-transform: uppercase;
+}
+
+.conductor-qb-meta-box-query-builder-sub-clause-group-inner:first-child .conductor-qb-descriptive-label {
+	display: none;
+}
+
+.select2-container.conductor-qb-select-select2-container {
+	margin: 0 0.25em;
+}
+
+.select2-container.conductor-qb-select-select2-container:first-of-type {
+	margin-left: 0;
+}
+
+.select2-container.conductor-qb-select-select2-container:last-of-type {
+	margin-right: 0;
+}
+
+.conductor-shortcode-ui-visible .select2-container.conductor-qb-select-select2-container .select2-search__field:not([placeholder=""]) {
+	width: 100% !important;
+}
+
+.conductor-qb-meta-box-query-builder-sub-clause-group-inner .conductor-qb-button,
+.wp-core-ui .conductor-qb-meta-box-query-builder-sub-clause-group-inner .button.conductor-qb-button,
+.wp-core-ui .conductor-qb-meta-box-query-builder-sub-clause-group-inner .button-secondary.conductor-qb-button {
+	margin-left: 0.5em;
+}
+
+.conductor-shortcode-ui-visible .select2-container.conductor-qb-select-select2-container,
+.conductor-shortcode-ui-visible .conductor-qb-meta-box-query-builder-sub-clause-group-inner .conductor-qb-button,
+.wp-core-ui.conductor-shortcode-ui-visible .conductor-qb-meta-box-query-builder-sub-clause-group-inner .button.conductor-qb-button,
+.wp-core-ui.conductor-shortcode-ui-visible .conductor-qb-meta-box-query-builder-sub-clause-group-inner .button-secondary.conductor-qb-button{
+	margin: 0;
+}
+
+/**
+ * Excerpt
+ */
+.post-type-conductor_qb_queries #excerpt {
+	max-width: 100%;
+}
+
+/**
+ * Shortcode
+ */
+.conductor-shortcode-ui-visible #TB_ajaxContent {
+	min-height: 86% !important;
+	padding: 2px 15px;
+}
+
+.conductor-shortcode-ui-visible .conductor-qb-shortcode-wrapper {
+	padding-bottom: 1rem;
+}
+
+#conductor-qb-shortcode-wrapper-container {
+	display: none;
+}
+
+.conductor-shortcode-ui-visible #conductor-qb-shortcode-actions {
+	padding: 8px 15px;
+	background: #fff;
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+
+.conductor-shortcode-ui-visible #conductor-qb-shortcode-actions .conductor-qb-spinner.spinner {
+	width: 20px;
+	min-height: 0;
+}
+
+#conductor-qb-shortcode-tab-content-wrapper {
+	padding: 1em;
+	background-color: #f1f1f1;
+	border: 1px solid #ccc;
+	border-top: none;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.conductor-qb-shortcode-setting {
+	margin: 0;
+}
+
+#conductor-qb-shortcode-create-title-content {
+	padding-bottom: 1em;
+}
+
+/**
+ * Clipboard
+ */
+.conductor-qb-clipboard {
+	cursor: pointer;
+}
+
+/**
+ * Tooltips
+ */
+.conductor-qb-tooltip {
+	position: relative;
+}
+
+.conductor-qb-tooltip:after {
+	content: attr(aria-label);
+	margin-top: 8px;
+	padding: 5px 8px;
+	color: #fff;
+	background: rgba(0,0,0,0.8);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 11px;
+	line-height: 1.5em;
+	border-radius: 3px;
+	display: inline-block;
+	text-align: center;
+	white-space: pre;
+	position: absolute;
+	top: 100%;
+	right: 50%;
+	z-index: 1000000;
+	pointer-events: none;
+	-webkit-transform: translateX(50%);
+	-ms-transform: translateX(50%);
+	transform: translateX(50%);
+}
+
+.conductor-qb-tooltip:before {
+	content: '';
+	width: 0;
+	height: 0;
+	margin-right: -5px;
+	color: rgba(0, 0, 0, 0.8);
+	border: 5px solid transparent;
+	border-bottom-color: rgba(0, 0, 0, 0.8);
+	display: inline-block;
+	text-decoration: none;
+	position: absolute;
+	top: auto;
+	right: 50%;
+	bottom: -8px;
+	z-index: 1000001;
+	pointer-events: none;
+}
+
+
+/**
+ * Query Builder Preview
+ */
+
+/**
+ * CSS Reset - http://meyerweb.com/eric/tools/css/reset/
+ * License: None (public domain)
+ * Copyright: Eric Meyer, http://meyerweb.com/eric/
+ *
+ * We've used Eric Meyer's reset as a base and modified it a bit to suit our needs.
+ */
+#conductor-query-builder-preview {
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+
+	/* Ensure that all long words are broken up so they do not exceed the width of their container elements. */
+	-ms-word-wrap: break-word;
+	word-wrap: break-word;
+}
+
+#conductor-query-builder-preview *, #conductor-query-builder-preview *:before, #conductor-query-builder-preview *:after {
+	max-width: 100%;
+	height: auto;
+
+	-webkit-box-sizing: inherit;
+	box-sizing: inherit;
+}
+#conductor-query-builder-preview img {
+	max-width: 100%;
+	height: auto;
+	vertical-align: top;
+}
+
+#conductor-query-builder-preview a img {
+	text-decoration: none;
+}
+
+#conductor-query-builder-preview select, #conductor-query-builder-preview iframe {
+	max-width: 100%;
+}
+
+#conductor-query-builder-preview table {
+	max-width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+}

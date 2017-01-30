@@ -1,0 +1,11 @@
+==========================================
+Plugin: Conductor Query Builder Add-On
+Author: Slocum Themes/Slocum Design Studio
+Author URI: https://conductorplugin.com/
+Current Version: 1.0.0
+==========================================
+
+
+1.0.0 // January 27 2017
+------------------------
+- Initial Release

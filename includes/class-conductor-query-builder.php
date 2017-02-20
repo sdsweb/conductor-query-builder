@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder
  * @author Slocum Studio
- * @version 1.0.0
+ * @version 1.0.1
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.0';
+		public $version = '1.0.1';
 
 		/**
 		 * @var string
@@ -144,6 +144,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		public $shortcode = 'conductor';
 
 		/**
+		 * @var Boolean
+		 */
+		public $is_active_widget = false;
+
+		/**
 		 * @var Conductor_Query_Builder, Instance of the class
 		 */
 		protected static $_instance;
@@ -168,6 +173,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Hooks
 			add_action( 'init', array( $this, 'init' ) ); // Init
+			add_filter( 'sidebars_widgets', array( $this, 'sidebars_widgets' ) ); // Sidebars Widgets
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) ); // Admin Enqueue Scripts
 			add_action( 'media_buttons', array( $this, 'media_buttons' ) ); // Media Buttons
 			add_action( 'save_post', array( $this, 'save_post' ) ); // Save Post
@@ -209,6 +215,12 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Grab the post types
 			$post_types = $this->get_post_types();
+
+			// Grab the Conductor Query Builder Widget instance
+			$conductor_qb_widget = Conduct_Query_Builder_Widget();
+
+			// Set the Conductor Query Builder Widget active flag
+			$this->is_active_widget = is_active_widget( false, false, $conductor_qb_widget->id_base );
 
 			/*
 			 * Operators
@@ -1496,6 +1508,46 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		}
 
 		/**
+		 * This function adjusts the sidebars widgets.
+		 */
+		public function sidebars_widgets( $sidebars_widgets ) {
+			global $wp_the_query;
+
+			// Bail if we're in the admin, we're not doing the wp_enqueue_scripts action, or our temporary sidebar already exists
+			if ( is_admin() || ! doing_action( 'wp_enqueue_scripts' ) || isset( $sidebars_widgets['conductor-qb-temporary-sidebar'] ) )
+				return $sidebars_widgets;
+
+			// Flag to determine if the [conductor] shortcode exists in any of the content in the current main query
+			$has_conductor_shortcode = false;
+
+			// If we have posts in the main query and we don't have an active Conductor Query Builder Widget
+			if ( ! $this->is_active_widget && $wp_the_query->have_posts() )
+				// Loop through the posts
+				while ( $wp_the_query->have_posts() ) {
+					// Grab the post
+					$post = $wp_the_query->next_post();
+
+					// If this post content has the [conductor] shortcode
+					if ( $has_conductor_shortcode = has_shortcode( $post->post_content, $this->shortcode ) )
+						break;
+				}
+
+			// Bail if we don't have an active Conductor Query Builder Widget or we don't have a [conductor] shortcode
+			if ( ! $this->is_active_widget && ! $has_conductor_shortcode )
+				return $sidebars_widgets;
+
+			// Grab the Conductor Widget instance
+			$conductor_widget = Conduct_Widget();
+
+			// Add our temporary sidebar with a mock Conductor Widget (this ensures Conductor scripts and styles are enqueued)
+			$sidebars_widgets['conductor-qb-temporary-sidebar'] = array(
+				$conductor_widget->id_base . '-0'
+			);
+
+			return $sidebars_widgets;
+		}
+
+		/**
 		 * This function enqueues scripts and styles in the admin.
 		 */
 		public function admin_enqueue_scripts( $hook ) {
@@ -2772,17 +2824,17 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// Start output buffering
 			ob_start();
 
-			// Loop through post IDs
-			foreach ( $post_ids as $index => $post_id ) {
-				// Trim/sanitize the post ID
-				$post_id = trim( ( int ) $post_id );
+				// Loop through post IDs
+				foreach ( $post_ids as $index => $post_id ) {
+					// Trim/sanitize the post ID
+					$post_id = trim( ( int ) $post_id );
 
-				// Grab the title for this query
-				$title = ( isset( $titles[$index] ) && ! empty( $titles[$index] ) ) ? $titles[$index] : '';
+					// Grab the title for this query
+					$title = ( isset( $titles[$index] ) && ! empty( $titles[$index] ) ) ? $titles[$index] : '';
 
-				// Render this Conductor Query
-				$this->render( $post_id, $title, 'shortcode' );
-			}
+					// Render this Conductor Query
+					$this->render( $post_id, $title, 'shortcode' );
+				}
 
 			// Grab the output from the buffer
 			$output .= ob_get_clean();
@@ -3936,14 +3988,15 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							'after_title' => $dynamic_sidebar_params[0]['after_title'],
 						), $dynamic_sidebar_params, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $conductor_widget, $this );
 
-						do_action( 'conductor_query_builder_render_before', $type, $post_id, $title, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
-						do_action( 'conductor_query_builder_render_' . $type . '_before', $post_id, $title, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+						do_action( 'conductor_query_builder_render_before', $type, $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+						do_action( 'conductor_query_builder_render_' . $type . '_before', $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
 
 						// Conductor Widget
+						// TODO: There's a chance sprintf in WordPress isn't working properly here for some reason
 						the_widget( get_class( $conductor_widget ), $this->current_conductor_widget_instance, $args );
 
-						do_action( 'conductor_query_builder_render_' . $type . '_after', $post_id, $title, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
-						do_action( 'conductor_query_builder_render_after', $type, $post_id, $title, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+						do_action( 'conductor_query_builder_render_' . $type . '_after', $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+						do_action( 'conductor_query_builder_render_after', $type, $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
 					}
 				}
 			}

@@ -3,7 +3,7 @@
  * Plugin Name: Conductor - Query Builder Add-On
  * Plugin URI: https://www.conductorplugin.com/
  * Description: The Conductor Query Builder add-on allows you to craft more complex queries with Conductor. The add-on has a simple view, and a builder view, which are usable in a shortcode for any page or post within your WordPress website.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Slocum Studio
  * Author URI: https://www.slocumstudio.com/
  */
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 		/**
 		 * @var string
 		 */
-		public static $version = '1.0.0';
+		public static $version = '1.0.1';
 
 		/**
 		 * @var Conductor_Updates, Instance of the Conductor Updates class

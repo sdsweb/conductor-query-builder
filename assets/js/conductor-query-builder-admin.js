@@ -254,6 +254,9 @@ var conductor_query_builder = conductor_query_builder || {};
 				reset: function() {
 					// Reset the Conductor Query Builder Shortcode Backbone View
 					Conductor_Query_Builder_Shortcode_View.reset();
+
+					// Reset the Conductor Query Builder Shortcode Insert Backbone View
+					Conductor_Query_Builder_Shortcode_Insert_View.reset();
 				}
 			},
 			/**
@@ -2990,6 +2993,7 @@ var conductor_query_builder = conductor_query_builder || {};
 	conductor_query_builder.Backbone.Views.Shortcode_Insert = wp.Backbone.View.extend( {
 		id: 'conductor-qb-shortcode-insert-inner',
 		el_selector: '#conductor-qb-shortcode-insert',
+		select2_selector: '.conductor-qb-select2',
 		template: wp.template( 'conductor-qb-shortcode-query-builder-insert' ),
 		/**
 		 * This function runs on initialization of the view.
@@ -3008,8 +3012,58 @@ var conductor_query_builder = conductor_query_builder || {};
 			// Call (apply) the default wp.Backbone.View render function
 			wp.Backbone.View.prototype.render.apply( this, arguments );
 
+			// Initialize Select2
+			this.initializeSelect2();
+
 			return this;
-		}
+		},
+		/**
+		 * This function resets the fields within this view
+		 */
+		reset: function() {
+			// Reset the insert title value
+			this.$el.find( '#conductor-qb-shortcode-insert-title' ).val( '' ).change();
+
+			// Reset the insert query value
+			this.$el.find( '#conductor-qb-shortcode-insert-query' ).val( '' ).change();
+
+			// Reset the create title value
+			this.$el.find( '#conductor-qb-shortcode-create-title' ).val( '' ).change();
+
+			// Destroy Select2
+			this.destroySelect2();
+		},
+		/**
+		 * This function initializes Select2.
+		 */
+		initializeSelect2: function() {
+			var self = this;
+
+			// Initialize Select2 (new thread)
+			setTimeout( function() {
+				self.$el.find( self.select2_selector ).select2( {
+					dropdownParent: $( '#TB_ajaxContent' )
+				} );
+			}, 1 );
+		},
+		/**
+		 * This function destroys all Select2 instances.
+		 */
+		destroySelect2: function() {
+			var $select2 = this.$el.find( this.select2_selector );
+
+			// Loop through possible Select2 instances
+			$select2.each( function() {
+				var $this = $( this ),
+					Select2 = $this.data( 'select2' );
+
+				// If we have a Select2 instance
+				if ( Select2 ) {
+					// Destroy Select2
+					$select2.select2( 'destroy' );
+				}
+			} );
+		},
 	} );
 
 	/**
@@ -3112,6 +3166,9 @@ var conductor_query_builder = conductor_query_builder || {};
 			else {
 				// Reset the shortcode Backbone components
 				conductor_query_builder.fn.shortcode.reset();
+
+				// Re-render the shortcode insert Backbone view
+				Conductor_Query_Builder_Shortcode_Insert_View.render();
 
 				// Reset the query builder Backbone components
 				conductor_query_builder.fn.query_builder.reset();

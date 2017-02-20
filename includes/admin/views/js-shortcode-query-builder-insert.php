@@ -25,7 +25,7 @@
 				<p class="conductor-qb-shortcode-setting">
 					<label for="conductor-qb-shortcode-insert-query" class="conductor-qb-label conductor-qb-shortcode-insert-label conductor-qb-shortcode-insert-query-label"><strong><?php _e( 'Select an existing Conductor Query', 'conductor-qb' ); ?></strong></label>
 					<br />
-					<select id="conductor-qb-shortcode-insert-query" class="conductor-qb-select conductor-qb-shortcode-insert-select conductor-qb-shortcode-insert-query-select" name="conductor_query_builder_shortcode_insert_query">
+					<select id="conductor-qb-shortcode-insert-query" class="conductor-qb-select conductor-qb-select2 conductor-qb-shortcode-insert-select conductor-qb-shortcode-insert-query-select" name="conductor_query_builder_shortcode_insert_query">
 						<option value="">{{{ conductor_query_builder.l10n.query.select }}}</option>
 						<#
 							// Loop through the queries

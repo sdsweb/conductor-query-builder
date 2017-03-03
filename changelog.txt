@@ -2,9 +2,16 @@
 Plugin: Conductor Query Builder Add-On
 Author: Slocum Themes/Slocum Design Studio
 Author URI: https://conductorplugin.com/
-Current Version: 1.0.1
+Current Version: 1.0.2
 ==========================================
 
+
+1.0.2 // March 03 2017
+----------------------
+- Fixed a bug where other versions of Select2 interfered with query builder Select2 logic; Thanks Ehab El-Zanaty
+- Fixed a bug where The Loop returned no results
+- Adjusted logic to enqueue scripts to ensure most scripts were enqueued in the footer
+- Fixed display of "spinner" icons in various areas
 
 1.0.1 // February 20 2017
 -------------------------

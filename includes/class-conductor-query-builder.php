@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder
  * @author Slocum Studio
- * @version 1.0.1
+ * @version 1.0.2
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.1';
+		public $version = '1.0.2';
 
 		/**
 		 * @var string
@@ -174,7 +174,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// Hooks
 			add_action( 'init', array( $this, 'init' ) ); // Init
 			add_filter( 'sidebars_widgets', array( $this, 'sidebars_widgets' ) ); // Sidebars Widgets
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) ); // Admin Enqueue Scripts
+			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 0 ); // Admin Enqueue Scripts (Very Early)
 			add_action( 'media_buttons', array( $this, 'media_buttons' ) ); // Media Buttons
 			add_action( 'save_post', array( $this, 'save_post' ) ); // Save Post
 			add_action( 'admin_print_footer_scripts', array( $this, 'admin_print_footer_scripts' ) ); // Admin Print Footer Scripts
@@ -1528,8 +1528,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					$post = $wp_the_query->next_post();
 
 					// If this post content has the [conductor] shortcode
-					if ( $has_conductor_shortcode = has_shortcode( $post->post_content, $this->shortcode ) )
-						break;
+					if ( ! $has_conductor_shortcode )
+						// Determine if this post content has the [conductor] shortcode
+						$has_conductor_shortcode = has_shortcode( $post->post_content, $this->shortcode );
 				}
 
 			// Bail if we don't have an active Conductor Query Builder Widget or we don't have a [conductor] shortcode
@@ -1573,8 +1574,13 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 * Select2 Script
 			 * License: MIT
 			 * Copyright: Kevin Brown (https://github.com/kevin-brown), Igor Vaynberg (https://github.com/ivaynberg), and contributors (https://github.com/select2/select2/graphs/contributors)
+			 *
+			 * Due to potential conflicts that arise when multiple Select2 versions are enqueued on a page, we have
+			 * to enqueue this script in the <head> element to ensure we can capture the correct jQuery Select2 function.
+			 * This is also why we are hooking into admin_enqueue_scripts with a priority of 0.
 			 */
 			wp_enqueue_script( 'conductor-query-builder-select2', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/select2/select2.min.js', array( 'jquery' ), Conductor_Query_Builder_Add_On::$version );
+			wp_add_inline_script( 'conductor-query-builder-select2', '( function ( $ ) { $.fn.conductor_qb_select2 = $.fn.select2; }( jQuery ) );' );
 
 			// Conductor Query Builder Admin Stylesheet
 			wp_enqueue_style( 'conductor-query-builder-admin', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/css/conductor-query-builder-admin.css', false, Conductor_Query_Builder_Add_On::$version );
@@ -1584,7 +1590,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 * License: MIT License
 			 * Copyright: Zeno Rocha, http://zenorocha.com/
 			 */
-			wp_enqueue_script( 'conductor-query-builder-clipboard', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/clipboard/clipboard.min.js', false, Conductor_Query_Builder_Add_On::$version );
+			wp_enqueue_script( 'conductor-query-builder-clipboard', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/clipboard/clipboard.min.js', false, Conductor_Query_Builder_Add_On::$version, true );
 			wp_localize_script( 'conductor-query-builder-clipboard', 'conductor_qb_clipboard', array(
 				// Localization
 				'l10n' => array(
@@ -1604,7 +1610,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			) );
 
 			// Conductor Query Builder Admin Script
-			wp_enqueue_script( 'conductor-query-builder-admin', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/conductor-query-builder-admin.min.js', array( 'conductor-query-builder-clipboard', 'wp-util', 'jquery-ui-core', 'underscore', 'wp-backbone', 'thickbox', 'conductor-query-builder-select2' ), Conductor_Query_Builder_Add_On::$version );
+			wp_enqueue_script( 'conductor-query-builder-admin', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/conductor-query-builder-admin.min.js', array( 'conductor-query-builder-clipboard', 'wp-util', 'jquery-ui-core', 'underscore', 'wp-backbone', 'thickbox', 'conductor-query-builder-select2' ), Conductor_Query_Builder_Add_On::$version, true );
 			wp_localize_script( 'conductor-query-builder-admin', 'conductor_query_builder', apply_filters( 'conductor_query_builder_admin_localize', array(
 				// AJAX
 				'ajax' => array(

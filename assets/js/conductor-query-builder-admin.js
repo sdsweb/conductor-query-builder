@@ -2074,7 +2074,7 @@ var conductor_query_builder = conductor_query_builder || {};
 				}
 
 				// Initialize Select2
-				$this.select2( select2_args );
+				$this.conductor_qb_select2( select2_args );
 
 				// Switch based on type
 				switch ( type ) {
@@ -2304,7 +2304,7 @@ var conductor_query_builder = conductor_query_builder || {};
 				// If we have a Select2 instance
 				if ( Select2 ) {
 					// Destroy Select2
-					$select2.select2( 'destroy' );
+					$select2.conductor_qb_select2( 'destroy' );
 				}
 			} );
 		},
@@ -3041,7 +3041,7 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// Initialize Select2 (new thread)
 			setTimeout( function() {
-				self.$el.find( self.select2_selector ).select2( {
+				self.$el.find( self.select2_selector ).conductor_qb_select2( {
 					dropdownParent: $( '#TB_ajaxContent' )
 				} );
 			}, 1 );
@@ -3060,7 +3060,7 @@ var conductor_query_builder = conductor_query_builder || {};
 				// If we have a Select2 instance
 				if ( Select2 ) {
 					// Destroy Select2
-					$select2.select2( 'destroy' );
+					$select2.conductor_qb_select2( 'destroy' );
 				}
 			} );
 		},

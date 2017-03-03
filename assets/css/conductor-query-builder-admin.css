@@ -31,6 +31,10 @@
 	box-sizing: border-box;
 }
 
+.conductor-qb-query-builder-meta-box-tab-content-wrapper.spinner.loading.is-active {
+	display: block;
+}
+
 .conductor-qb-tab {
 	display: none;
 }
@@ -292,6 +296,10 @@
 	min-height: 0;
 }
 
+.conductor-shortcode-ui-visible #conductor-qb-shortcode-actions .conductor-qb-spinner.spinner.loading.is-active {
+	display: inline-block;
+}
+
 #conductor-qb-shortcode-tab-content-wrapper {
 	padding: 1em;
 	background-color: #f1f1f1;
@@ -383,6 +391,10 @@
 	/* Ensure that all long words are broken up so they do not exceed the width of their container elements. */
 	-ms-word-wrap: break-word;
 	word-wrap: break-word;
+}
+
+#conductor-query-builder-preview.spinner.loading.is-active {
+	display: block;
 }
 
 #conductor-query-builder-preview *, #conductor-query-builder-preview *:before, #conductor-query-builder-preview *:after {

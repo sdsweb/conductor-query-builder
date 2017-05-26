@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Admin_Views
  * @author Slocum Studio
- * @version 1.0.0
+ * @version 1.0.3
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.0';
+		public $version = '1.0.3';
 
 		/**
 		 * @var array
@@ -50,8 +50,11 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 		/**
 		 * This function outputs scripts in the admin footer.
 		 */
-		public function admin_footer() {
+		public function admin_footer( $the_hook_suffix = '' ) {
 			global $post, $hook_suffix;
+
+			// If we don't have a hook suffix argument
+			$the_hook_suffix = ( $the_hook_suffix === '' ) ? $hook_suffix : $the_hook_suffix;
 
 			// Grab the Conductor Query Builder instance
 			$conductor_query_builder = Conduct_Query_Builder();
@@ -72,10 +75,10 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 			self::meta_box_query_builder_tab_content_clause_group( $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget );
 
 			// Meta Box Query Builder Tab Content Sub-Clause Group UnderscoreJS Template
-			self::meta_box_query_builder_tab_content_sub_clause_group( $post, $post_meta,$conductor_query_builder, $conductor_widget_instance, $conductor_widget );
+			self::meta_box_query_builder_tab_content_sub_clause_group( $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget );
 
 			// If we're on a page that supports the Conductor Query Builder
-			if ( in_array( $hook_suffix, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) ) {
+			if ( apply_filters( 'conductor_query_builder_admin_footer', $the_hook_suffix && in_array( $the_hook_suffix, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $the_hook_suffix, $hook_suffix, $post, $conductor_query_builder, $conductor_widget, $this ) ) {
 				// Shortcode query builder template
 				$conductor_query_builder->shortcode_query_builder();
 
@@ -107,7 +110,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 		/**
 		 * This function renders the shortcode create query builder content.
 		 */
-		public static function shortcode_query_builder_create_tab_content( $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget ) {
+		public static function shortcode_query_builder_create_tab_content( $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget, $form_element ) {
 			require 'views/html-shortcode-query-builder-create-tab-content.php';
 		}
 
@@ -164,6 +167,17 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 		 * This function renders the meta box query builder tab content sub-clause group UnderscoreJS template.
 		 */
 		public static function meta_box_query_builder_tab_content_sub_clause_group( $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget ) {
+			// TODO: Adjust filter name
+			$field_brackets = apply_filters( 'conductor_query_builder_sub_clause_group_field_brackets', array( 'left' => '[', 'right' => ']' ), $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget );
+
+			// Setup the left and right field brackets
+			$left_field_bracket = esc_attr( $field_brackets['left'] );
+			$right_field_bracket = esc_attr( $field_brackets['right'] );
+
+			// Setup the meta key prefix
+			// TODO: Adjust filter name
+			$meta_key_prefix = apply_filters( 'conductor_query_builder_sub_clause_group_meta_key_prefix', esc_attr( rtrim( $conductor_query_builder->meta_key_prefix, '_' ) ), $conductor_query_builder->meta_key_prefix, $field_brackets, $left_field_bracket, $right_field_bracket, $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget );
+
 			require_once 'views/js-meta-box-query-builder-tab-content-sub-clause-group.php';
 		}
 

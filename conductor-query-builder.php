@@ -3,9 +3,12 @@
  * Plugin Name: Conductor - Query Builder Add-On
  * Plugin URI: https://www.conductorplugin.com/
  * Description: The Conductor Query Builder add-on allows you to craft more complex queries with Conductor. The add-on has a simple view, and a builder view, which are usable in a shortcode for any page or post within your WordPress website.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Slocum Studio
  * Author URI: https://www.slocumstudio.com/
+ * Requires at least: 4.4
+ * Tested up to: 4.7.5
+ * License: GPL2+
  */
 
 // Bail if accessed directly
@@ -17,7 +20,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 		/**
 		 * @var string
 		 */
-		public static $version = '1.0.2';
+		public static $version = '1.0.3';
 
 		/**
 		 * @var Conductor_Updates, Instance of the Conductor Updates class
@@ -56,9 +59,14 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 		private function includes() {
 			// All
 			include_once 'includes/functions/php-array-column.php' ; // PHP - array_column() Function
+			include_once 'includes/functions/conductor-query-builder.php' ; // Conductor Query Builder Functions
 			include_once 'includes/class-conductor-query-builder.php' ; // Conductor Query Builder Class
 			include_once 'includes/admin/class-conductor-query-builder-admin.php' ; // Conductor Query Builder Admin Class
 			include_once 'includes/class-conductor-query-builder-toolbar.php'; // Conductor Query Builder Toolbar (Admin Bar) Class
+
+			// Beaver Builder
+			if ( class_exists( 'FLBuilder' ) )
+				include_once 'includes/class-conductor-query-builder-beaver-builder.php'; // Conductor Query Builder - Beaver Builder Class
 
 			// Admin Only
 			if ( is_admin() ) {}
@@ -87,17 +95,16 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 			// If Conductor is not active
-			if ( ! class_exists( 'Conductor' ) || ! version_compare( Conductor::$version, '1.4.0', '>=' ) ) {
-				// De-activate this plugin
-				if ( is_plugin_active( plugin_basename( __FILE__ ) ) ) {
-					deactivate_plugins( plugin_basename( __FILE__ ) );
+			if ( ! class_exists( 'Conductor' ) || ! version_compare( Conductor::$version, '1.4.0', '>=' ) )
+				// If this plugin is active
+				if ( is_plugin_active( plugin_basename( Conductor_Query_Builder_Add_On::plugin_file() ) ) ) {
+					// De-activate this plugin
+					deactivate_plugins( plugin_basename( Conductor_Query_Builder_Add_On::plugin_file() ) );
 					unset( $_GET[ 'activate' ] );
 
 					// Show admin notice
 					add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 				}
-
-			}
 
 			// Load required assets
 			$this->includes();
@@ -112,7 +119,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 		function admin_notices() {
 		?>
 			<div class="updated error">
-				<p><?php printf( __( 'Conductor Query Builder Add-on requires Conductor version 1.4.0 or greater. Please install &amp; activate Conductor version 1.4.0 or greater and try again.', 'conductor-qb' ) ); ?></p>
+				<p><?php printf( __( 'Conductor Query Builder Add-on requires Conductor version 1.4.0 or greater. Please install &amp; activate Conductor version 1.4.0 or greater and try again.', 'conductor-query-builder' ) ); ?></p>
 			</div>
 		<?php
 		}

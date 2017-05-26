@@ -71,7 +71,7 @@
 		// If this view can be removed
 		if ( data.flags.remove ) {
 	#>
-		<button class="button button-secondary conductor-qb-button conductor-qb-action-button conductor-qb-remove-action-button conductor-qb-remove-clause-group-button conductor-qb-remove-{{ data.type }}-clause-group-button" data-action-button-id="conductor-qb-add-{{ data.type }}-clause-group-button"><?php _e( 'Remove Group', 'conductor-qb' ); ?></button>
+		<button class="button button-secondary conductor-qb-button conductor-qb-action-button conductor-qb-remove-action-button conductor-qb-remove-clause-group-button conductor-qb-remove-{{ data.type }}-clause-group-button" data-action-button-id="conductor-qb-add-{{ data.type }}-clause-group-button"><?php _e( 'Remove Group', 'conductor-query-builder' ); ?></button>
 	<#
 		}
 	#>

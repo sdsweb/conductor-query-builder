@@ -2,9 +2,36 @@
 Plugin: Conductor Query Builder Add-On
 Author: Slocum Themes/Slocum Design Studio
 Author URI: https://conductorplugin.com/
-Current Version: 1.0.2
+Current Version: 1.0.3
 ==========================================
 
+
+1.0.3 // May 22 2017
+--------------------
+- Beaver Builder
+-- Introduced Conductor Query Builder Beaver Builder module
+- Query Builder
+-- Introduced conductor_query() function to render a Conductor Query
+-- Introduced a "Functions" meta box to allow developers to utilize the new conductor_query() function
+-- Added logic to allow for a Conductor Widget instance (settings) to be passed into the query builder on load
+-- Added logic to add a "no title" label to posts and Conductor Queries that did not have post titles
+-- Added logic to switch the Conductor Widget feature type to "many" in the advanced query builder
+-- Fixed a bug where operators select elements were not updated when different parameters were selected
+-- Fixed a bug where the order of the values select elements were not honored
+-- Added logic to ensure AYS ("Are You Sure") message appeared when simple query builder mode was selected
+   and the shortcode modal window was closed but there were query arguments that were changed since opening
+-- Fixed a bug where creating a query in the shortcode query builder modal would not send all selected
+   values within a sub-clause
+-- Fixed a bug where the shortcode modal version of the query builder automatically selected the first operator
+   when a parameter was selected
+-- Fixed a bug that prevented scrolling in the shortcode modal while building a query
+-- Fixed display issues due to Yoast SEO CSS being inherited in the shortcode modal
+- General
+-- Fixed a possible fatal PHP error that occurred on deactivation of Conductor
+-- Fixed a bug where the current paged value was not used correctly in Conductor Query Builder queries
+-- Adjusted Conductor_Query_Builder::init() priority to ensure it ran late; Thanks Karen Bennett
+-- Changed text domain to "conductor-query-builder"
+-- Added logic to use helper function for plugin file instead of PHP magic constant in deactivation logic
 
 1.0.2 // March 03 2017
 ----------------------

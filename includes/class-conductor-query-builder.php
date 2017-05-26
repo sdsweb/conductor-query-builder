@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder
  * @author Slocum Studio
- * @version 1.0.2
+ * @version 1.0.3
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.2';
+		public $version = '1.0.3';
 
 		/**
 		 * @var string
@@ -144,6 +144,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		public $shortcode = 'conductor';
 
 		/**
+		 * @var string
+		 */
+		public $function = 'conductor_query';
+
+		/**
 		 * @var Boolean
 		 */
 		public $is_active_widget = false;
@@ -172,7 +177,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$this->includes();
 
 			// Hooks
-			add_action( 'init', array( $this, 'init' ) ); // Init
+			add_action( 'init', array( $this, 'init' ), 9999 ); // Init (Late)
 			add_filter( 'sidebars_widgets', array( $this, 'sidebars_widgets' ) ); // Sidebars Widgets
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 0 ); // Admin Enqueue Scripts (Very Early)
 			add_action( 'media_buttons', array( $this, 'media_buttons' ) ); // Media Buttons
@@ -228,75 +233,75 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// TODO: _x()?
 			$this->operators = apply_filters( 'conductor_query_builder_operators', array(
 				// Equals
-				'IS' => __( '=', 'conductor-qb' ),
+				'IS' => __( '=', 'conductor-query-builder' ),
 				// Not Equals
-				'NOT' => __( '!=', 'conductor-qb' ),
+				'NOT' => __( '!=', 'conductor-query-builder' ),
 				// Greater Than
-				'GREATER_THAN' => __( '&gt;', 'conductor-qb' ),
+				'GREATER_THAN' => __( '&gt;', 'conductor-query-builder' ),
 				// Greater Than or Equal
-				'GREATER_THAN_EQUALS' => __('&gt;=', 'conductor-qb' ),
+				'GREATER_THAN_EQUALS' => __('&gt;=', 'conductor-query-builder' ),
 				// Less Than
-				'LESS_THAN' => __( '&lt;', 'conductor-qb' ),
+				'LESS_THAN' => __( '&lt;', 'conductor-query-builder' ),
 				// Less Than or Equal
-				'LESS_THAN_EQUALS' => __( '&lt;=', 'conductor-qb' ),
+				'LESS_THAN_EQUALS' => __( '&lt;=', 'conductor-query-builder' ),
 				// AND
 				'AND' => array(
-					'label' => __( 'AND', 'conductor-qb' ),
+					'label' => __( 'AND', 'conductor-query-builder' ),
 					'multiple' => true,
 					'type' => 'multiple'
 				),
 				// EXISTS
 				'EXISTS' => array(
-					'label' => __( 'EXISTS', 'conductor-qb' )
+					'label' => __( 'EXISTS', 'conductor-query-builder' )
 					// TODO: 'type' => 'bool'?
 				),
 				// NOT EXISTS
 				'NOT EXISTS' => array(
-					'label' => __( 'NOT EXISTS', 'conductor-qb' )
+					'label' => __( 'NOT EXISTS', 'conductor-query-builder' )
 					// TODO: 'type' => 'bool'?
 				),
 				// LIKE
-				'LIKE' => __( 'LIKE', 'conductor-qb' ),
+				'LIKE' => __( 'LIKE', 'conductor-query-builder' ),
 				// NOT LIKE
-				'NOT LIKE' => __( 'NOT LIKE', 'conductor-qb' ),
+				'NOT LIKE' => __( 'NOT LIKE', 'conductor-query-builder' ),
 				// IN
 				'IN' => array(
-					'label' => __( 'IN', 'conductor-qb' ),
+					'label' => __( 'IN', 'conductor-query-builder' ),
 					'multiple' => true,
 					'type' => 'multiple'
 				),
 				// NOT IN
 				'NOT IN' => array(
-					'label' => __( 'NOT IN', 'conductor-qb' ),
+					'label' => __( 'NOT IN', 'conductor-query-builder' ),
 					'multiple' => true,
 					'type' => 'multiple'
 				),
 				// TRUE
 				'TRUE' => array(
-					'label' => __( 'TRUE', 'conductor-qb' ),
+					'label' => __( 'TRUE', 'conductor-query-builder' ),
 					'type' => 'bool',
 					'value' => true
 				),
 				// FALSE
 				'FALSE' => array(
-					'label' => __( 'FALSE', 'conductor-qb' ),
+					'label' => __( 'FALSE', 'conductor-query-builder' ),
 					'type' => 'bool',
 					'value' => false
 				),
 				// ASCENDING
-				'ASC' => __( 'Ascending', 'conductor-qb' ),
+				'ASC' => __( 'Ascending', 'conductor-query-builder' ),
 				// DESCENDING
-				'DESC' => __( 'Descending', 'conductor-qb' ),
+				'DESC' => __( 'Descending', 'conductor-query-builder' ),
 				// BETWEEN
 				'BETWEEN' => array(
-					'label' => __( 'BETWEEN', 'conductor-qb' ),
+					'label' => __( 'BETWEEN', 'conductor-query-builder' ),
 					'multiple' => true,
 					'limit' => 2, // TODO: Future: Ensure this is used in sanitize logic and JS logic via maximumSelectionLength
 					'type' => 'multiple'
 				),
 				// NOT BETWEEN
 				'NOT BETWEEN' => array(
-					'label' => __( 'NOT BETWEEN', 'conductor-qb' ),
+					'label' => __( 'NOT BETWEEN', 'conductor-query-builder' ),
 					'multiple' => true,
 					'limit' => 2, // TODO: Future: Ensure this is used in sanitize logic and JS logic via maximumSelectionLength
 					'type' => 'multiple'
@@ -692,7 +697,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 */
 
 			// If we're in the admin on a page that supports the Conductor Query Builder or doing an AJAX request
-			if ( ( is_admin() && in_array( $pagenow, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+			if ( apply_filters( 'conductor_query_builder_populate_values_data', ( ( is_admin() && in_array( $pagenow, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ), $this ) ) {
 				$this->values = array(
 					// WHERE
 					'author' => array(),
@@ -703,7 +708,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					'post_parent' => array(
 						// Allow for top level entries
 						array(
-							'label' => __( 'All Top Level Pages', 'conductor-qb' ),
+							'label' => __( 'All Top Level Pages', 'conductor-query-builder' ),
 							'value' => 0
 						)
 					),
@@ -744,13 +749,13 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					foreach ( $authors as $author ) {
 						// Author ID
 						$this->values['author'][] = array(
-							'label' => sprintf( _x( '%1$s (%2$s)', 'label for author ID value', 'conductor-qb' ), $author->display_name, $author->ID ),
+							'label' => sprintf( _x( '%1$s (%2$s)', 'label for author ID value', 'conductor-query-builder' ), $author->display_name, $author->ID ),
 							'value' => $author->ID
 						);
 
 						// Author Name
 						$this->values['author_name'][] = array(
-							'label' => sprintf( _x( '%1$s (%2$s)', 'label for author name value', 'conductor-qb' ), $author->display_name, $author->user_nicename ),
+							'label' => sprintf( _x( '%1$s (%2$s)', 'label for author name value', 'conductor-query-builder' ), $author->display_name, $author->user_nicename ),
 							'value' => $author->ID
 						);
 					}
@@ -785,7 +790,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 						$post_title = get_the_title( $the_post );
 
 						$this->values['p'][] = array(
-							'label' => sprintf( _x( '%1$s (%2$s)', 'label for post ID value', 'conductor-qb' ), $post_title, $post_id ),
+							'label' => sprintf( _x( '%1$s (%2$s)', 'label for post ID value', 'conductor-query-builder' ), ( $post_title ) ? $post_title : __( '(no title)', 'conductor-query-builder' ), $post_id ),
 							'value' => $post_id
 						);
 
@@ -793,14 +798,14 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 						if ( ( $post_name = get_post_field( 'post_name', $the_post ) ) ) {
 							// Name
 							$this->values['name'][] = array(
-								'label' => sprintf( _x( '%1$s (%2$s)', 'label for post name value', 'conductor-qb' ), ( empty( $post_title ) ) ? sprintf( __( '#%d', 'conductor-qb' ), $post_id ) : $post_title, $post_name ),
+								'label' => sprintf( _x( '%1$s (%2$s)', 'label for post name value', 'conductor-query-builder' ), ( empty( $post_title ) ) ? sprintf( __( '#%d', 'conductor-query-builder' ), $post_id ) : $post_title, $post_name ),
 								'value' => $post_name
 							);
 
 							// Page Name
 							if ( get_post_type( $the_post ) === 'page' )
 								$this->values['pagename'][] = array(
-									'label' => sprintf( _x( '%1$s (%2$s)', 'label for page name value', 'conductor-qb' ), ( empty( $post_title ) ) ? sprintf( __( '#%d', 'conductor-qb' ), $post_id ) : $post_title, $post_name ),
+									'label' => sprintf( _x( '%1$s (%2$s)', 'label for page name value', 'conductor-query-builder' ), ( empty( $post_title ) ) ? sprintf( __( '#%d', 'conductor-query-builder' ), $post_id ) : $post_title, $post_name ),
 									'value' => $post_name
 								);
 						}
@@ -808,7 +813,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 						// Post Parent
 						if ( ( $post_parent_id = wp_get_post_parent_id( $the_post ) ) && ! in_array( $post_parent_id, $this->values['post_parent'] ) )
 							$this->values['post_parent'][] = array(
-								'label' => sprintf( _x( '%1$s (%2$s)', 'label for post parent ID value', 'conductor-qb' ), $post_title, $post_parent_id ),
+								'label' => sprintf( _x( '%1$s (%2$s)', 'label for post parent ID value', 'conductor-query-builder' ), ( $post_title ) ? $post_title : __( '(no title)', 'conductor-query-builder' ), $post_parent_id ),
 								'value' => $post_parent_id
 							);
 					}
@@ -858,13 +863,13 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										case 'category':
 											// cat
 											$this->values['tax_query']['cat'][] = array(
-												'label' => sprintf( _x( '%1$s (%2$s)', 'label for category ID value', 'conductor-qb' ), $term_obj->name, $term_obj->term_id ),
+												'label' => sprintf( _x( '%1$s (%2$s)', 'label for category ID value', 'conductor-query-builder' ), $term_obj->name, $term_obj->term_id ),
 												'value' => $term_obj->term_id
 											);
 
 											// category_name
 											$this->values['tax_query']['category_name'][] = array(
-												'label' => sprintf( _x( '%1$s (%2$s)', 'label for category name value', 'conductor-qb' ), $term_obj->name, $term_obj->slug ),
+												'label' => sprintf( _x( '%1$s (%2$s)', 'label for category name value', 'conductor-query-builder' ), $term_obj->name, $term_obj->slug ),
 												'value' => $term_obj->slug
 											);
 										break;
@@ -873,13 +878,13 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										case 'post_tag':
 											// tag_id
 											$this->values['tax_query']['tag_id'][] = array(
-												'label' => sprintf( _x( '%1$s (%2$s)', 'label for tag ID value', 'conductor-qb' ), $term_obj->name, $term_obj->term_id ),
+												'label' => sprintf( _x( '%1$s (%2$s)', 'label for tag ID value', 'conductor-query-builder' ), $term_obj->name, $term_obj->term_id ),
 												'value' => $term_obj->term_id
 											);
 
 											// tag
 											$this->values['tax_query']['tag'][] = array(
-												'label' => sprintf( _x( '%1$s (%2$s)', 'label for tag name value', 'conductor-qb' ), $term_obj->name, $term_obj->slug ),
+												'label' => sprintf( _x( '%1$s (%2$s)', 'label for tag name value', 'conductor-query-builder' ), $term_obj->name, $term_obj->slug ),
 												'value' => $term_obj->slug
 											);
 										break;
@@ -900,12 +905,12 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 											$this->values['tax_query'][$taxonomy . ':name'][] = $term_obj->name;
 
 											$this->values['tax_query'][$taxonomy . ':slug'][] = array(
-												'label' => sprintf( _x( '%1$s (%2$s)', 'label for taxonomy term slug value', 'conductor-qb' ), $term_obj->name, $term_obj->slug ),
+												'label' => sprintf( _x( '%1$s (%2$s)', 'label for taxonomy term slug value', 'conductor-query-builder' ), $term_obj->name, $term_obj->slug ),
 												'value' => $term_obj->slug
 											);
 
 											$this->values['tax_query'][$taxonomy . ':term_id'][] = array(
-												'label' => sprintf( _x( '%1$s (%2$s)', 'label for taxonomy term ID value', 'conductor-qb' ), $term_obj->name, $term_obj->term_id ),
+												'label' => sprintf( _x( '%1$s (%2$s)', 'label for taxonomy term ID value', 'conductor-query-builder' ), $term_obj->name, $term_obj->term_id ),
 												'value' => $term_obj->term_id
 											);
 										break;
@@ -961,7 +966,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 */
 
 			// If we're in the admin on a page that supports the Conductor Query Builder or doing an AJAX request
-			if ( ( is_admin() && in_array( $pagenow, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+			if ( apply_filters( 'conductor_query_builder_populate_clauses_data', apply_filters( 'conductor_query_builder_populate_clause_data', ( ( is_admin() && in_array( $pagenow, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ), $this ), $this ) ) {
 				$this->clauses = array(
 					// FROM
 					'from' => array(
@@ -976,7 +981,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										// Allow multiple selections
 										'multiple' => true,
 										// Placeholder
-										'placeholder' => __( 'Select a content type...', 'conductor-qb' ),
+										'placeholder' => __( 'Select a content type...', 'conductor-query-builder' ),
 										// Toggle Action Buttons
 										'toggle-action-buttons' => true
 									)
@@ -994,7 +999,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								'actions' => true
 							),
 							// Title
-							'title' => __( 'From', 'conductor-qb' ),
+							'title' => __( 'From', 'conductor-query-builder' ),
 							// Limit
 							'limit' => 1,
 							// Default
@@ -1018,7 +1023,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select a parameter...', 'conductor-qb' )
+										'placeholder' => __( 'Select a parameter...', 'conductor-query-builder' )
 									)
 								),
 								// Operators Column (2nd Column)
@@ -1026,7 +1031,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select an operator...', 'conductor-qb' )
+										'placeholder' => __( 'Select an operator...', 'conductor-query-builder' )
 									)
 								),
 								// Values Column (3rd Column)
@@ -1036,7 +1041,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										// Allow multiple selections
 										'multiple' => true,
 										// Placeholder
-										'placeholder' => __( 'Enter a value...', 'conductor-qb' ),
+										'placeholder' => __( 'Enter a value...', 'conductor-query-builder' ),
 										// Allow tags (custom values; pass an array of separator tokens)
 										'tags' => array(
 											','
@@ -1050,23 +1055,23 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								'ignore_descriptive_labels' => true
 							),
 							// Title
-							'title' => __( 'Where', 'conductor-qb' ),
+							'title' => __( 'Where', 'conductor-query-builder' ),
 							// Limit
 							'limit' => 1
 						),
 						// Parameters
 						'parameters' => array(
-							'author' => __( 'Author ID', 'conductor-qb' ),
-							'author_name' => __( 'Author Name (slug; user_nicename)', 'conductor-qb' ),
-							'has_password' => __( 'Has Password', 'conductor-qb' ),
-							'p' => __( 'ID', 'conductor-qb' ),
-							's' => __( 'Keyword', 'conductor-qb' ),
-							'name' => __( 'Name (slug)', 'conductor-qb' ),
-							'pagename' => __( 'Page Name (slug)', 'conductor-qb' ),
-							'post_parent' => __( 'Parent (IDs)', 'conductor-qb' ),
-							'post_password' => __( 'Password', 'conductor-qb' ),
-							'post_status' => __( 'Post Status', 'conductor-qb' ),
-							'perm' => __( 'User Permission', 'conductor-qb' ),
+							'author' => __( 'Author ID', 'conductor-query-builder' ),
+							'author_name' => __( 'Author Name (slug; user_nicename)', 'conductor-query-builder' ),
+							'has_password' => __( 'Has Password', 'conductor-query-builder' ),
+							'p' => __( 'ID', 'conductor-query-builder' ),
+							's' => __( 'Keyword', 'conductor-query-builder' ),
+							'name' => __( 'Name (slug)', 'conductor-query-builder' ),
+							'pagename' => __( 'Page Name (slug)', 'conductor-query-builder' ),
+							'post_parent' => __( 'Parent (IDs)', 'conductor-query-builder' ),
+							'post_password' => __( 'Password', 'conductor-query-builder' ),
+							'post_status' => __( 'Post Status', 'conductor-query-builder' ),
+							'perm' => __( 'User Permission', 'conductor-query-builder' ),
 						),
 						// Operators
 						'operators' => $this->operators,
@@ -1093,7 +1098,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select a parameter...', 'conductor-qb' )
+										'placeholder' => __( 'Select a parameter...', 'conductor-query-builder' )
 									)
 								),
 								// Operators Column (2nd Column)
@@ -1101,7 +1106,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select an operator...', 'conductor-qb' )
+										'placeholder' => __( 'Select an operator...', 'conductor-query-builder' )
 									)
 								),
 								// Values Column (3rd Column)
@@ -1111,7 +1116,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										// Allow multiple selections
 										'multiple' => true,
 										// Placeholder
-										'placeholder' => __( 'Enter a value...', 'conductor-qb' ),
+										'placeholder' => __( 'Enter a value...', 'conductor-query-builder' ),
 										// Allow tags (custom values; pass an array of separator tokens)
 										'tags' => array(
 											','
@@ -1120,7 +1125,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								)
 							),
 							// Title
-							'title' => __( 'Where Meta (Custom Field)', 'conductor-qb' )
+							'title' => __( 'Where Meta (Custom Field)', 'conductor-query-builder' )
 						),
 						// Parameters (see below)
 						'parameters' => array(),
@@ -1139,7 +1144,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select a parameter...', 'conductor-qb' )
+										'placeholder' => __( 'Select a parameter...', 'conductor-query-builder' )
 									)
 								),
 								// Operators Column (2nd Column)
@@ -1147,7 +1152,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select an operator...', 'conductor-qb' )
+										'placeholder' => __( 'Select an operator...', 'conductor-query-builder' )
 									)
 								),
 								// Values Column (3rd Column)
@@ -1157,7 +1162,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										// Allow multiple selections
 										'multiple' => true,
 										// Placeholder
-										'placeholder' => __( 'Enter a value...', 'conductor-qb' ),
+										'placeholder' => __( 'Enter a value...', 'conductor-query-builder' ),
 										// Allow tags (custom values; pass an array of separator tokens)
 										'tags' => array(
 											','
@@ -1166,14 +1171,14 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								)
 							),
 							// Title
-							'title' => __( 'Where Taxonomy', 'conductor-qb' )
+							'title' => __( 'Where Taxonomy', 'conductor-query-builder' )
 						),
 						// Parameters (see below)
 						'parameters' => array(
-							'cat' => __( 'Category ID', 'conductor-qb' ),
-							'category_name' => __( 'Category Name (slug)', 'conductor-qb' ),
-							'tag_id' => __( 'Tag ID', 'conductor-qb' ),
-							'tag' => __( 'Tag Name (slug)', 'conductor-qb' ),
+							'cat' => __( 'Category ID', 'conductor-query-builder' ),
+							'category_name' => __( 'Category Name (slug)', 'conductor-query-builder' ),
+							'tag_id' => __( 'Tag ID', 'conductor-query-builder' ),
+							'tag' => __( 'Tag Name (slug)', 'conductor-query-builder' ),
 						),
 						// Operators
 						'operators' => $this->operators,
@@ -1191,7 +1196,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select a parameter...', 'conductor-qb' )
+										'placeholder' => __( 'Select a parameter...', 'conductor-query-builder' )
 									)
 								),
 								// Operators Column (2nd Column)
@@ -1199,7 +1204,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select an operator...', 'conductor-qb' )
+										'placeholder' => __( 'Select an operator...', 'conductor-query-builder' )
 									)
 								)
 							),
@@ -1209,94 +1214,94 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								'ignore_descriptive_labels' => true
 							),
 							// Title
-							'title' => __( 'Order By', 'conductor-qb' ),
+							'title' => __( 'Order By', 'conductor-query-builder' ),
 							// Limit
 							'limit' => 1
 						),
 						// Parameters
 						'parameters' => array(
 							'none' => array(
-								'label' => __( 'None', 'conductor-qb' ),
+								'label' => __( 'None', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'author' => array(
-								'label' => __( 'Author', 'conductor-qb' ),
+								'label' => __( 'Author', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'comment_count' => array(
-								'label' => __( 'Comment Count', 'conductor-qb' ),
+								'label' => __( 'Comment Count', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'date' => array(
-								'label' => __( 'Date', 'conductor-qb' ),
+								'label' => __( 'Date', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'ID' => array(
-								'label' => __( 'ID', 'conductor-qb' ),
+								'label' => __( 'ID', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							// TODO: Hierarchical post types only
 							'menu_order' => array(
-								'label' => __( 'Menu Order', 'conductor-qb' ),
+								'label' => __( 'Menu Order', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							// TODO: Requires meta_key query argument
 							'meta_value' => array(
-								'label' => __( 'Meta Value', 'conductor-qb' ),
+								'label' => __( 'Meta Value', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							// TODO: Requires meta_key query argument
 							'meta_value_num' => array(
-								'label' => __( 'Meta Value Number', 'conductor-qb' ),
+								'label' => __( 'Meta Value Number', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'modified' => array(
-								'label' => __( 'Modified Date', 'conductor-qb' ),
+								'label' => __( 'Modified Date', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'name' => array(
-								'label' => __( 'Name (slug)', 'conductor-qb' ),
+								'label' => __( 'Name (slug)', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'parent' => array(
-								'label' => __( 'Parent ID', 'conductor-qb' ),
+								'label' => __( 'Parent ID', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							// TODO: Requires post__in query argument
 							'post__in' => array(
-								'label' => __( 'post__in', 'conductor-qb' ),
+								'label' => __( 'post__in', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							// TODO: Requires post_parent__in query argument
 							'post_parent__in' => array(
-								'label' => __( 'post_parent__in', 'conductor-qb' ),
+								'label' => __( 'post_parent__in', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'rand' => array(
-								'label' => __( 'Random', 'conductor-qb' ),
+								'label' => __( 'Random', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'title' => array(
-								'label' => __( 'Title', 'conductor-qb' ),
+								'label' => __( 'Title', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
 							'type' => array(
-								'label' => __( 'Post Type', 'conductor-qb' ),
+								'label' => __( 'Post Type', 'conductor-query-builder' ),
 								'parameter' => 'order_by',
 								'field' => 'order'
 							),
@@ -1319,7 +1324,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select a parameter...', 'conductor-qb' )
+										'placeholder' => __( 'Select a parameter...', 'conductor-query-builder' )
 									)
 								),
 								// Operators Column (2nd Column)
@@ -1327,7 +1332,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 									// Select2 Configuration
 									'select2' => array(
 										// Placeholder
-										'placeholder' => __( 'Select an operator...', 'conductor-qb' )
+										'placeholder' => __( 'Select an operator...', 'conductor-query-builder' )
 									)
 								),
 								// Values Column (3rd Column)
@@ -1337,7 +1342,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										// Allow multiple selections
 										'multiple' => true,
 										// Placeholder
-										'placeholder' => __( 'Enter a value...', 'conductor-qb' ),
+										'placeholder' => __( 'Enter a value...', 'conductor-query-builder' ),
 										// Allow tags (custom values; pass an array of separator tokens)
 										'tags' => array(
 											','
@@ -1351,17 +1356,17 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								'ignore_descriptive_labels' => true
 							),
 							// Title
-							'title' => __( 'Limit', 'conductor-qb' ),
+							'title' => __( 'Limit', 'conductor-query-builder' ),
 							// Limit
 							'limit' => 1
 						),
 						// Parameters
 						'parameters' => array(
-							'offset' => __( 'Offset', 'conductor-qb' ),
-							//'paged' => __( 'Paged', 'conductor-qb' ), // TODO
-							'max_num_posts' => __( 'Maximum Number of Posts', 'conductor-qb' ),
-							'posts_per_page' => __( 'Posts Per Page', 'conductor-qb' ),
-							'ignore_sticky_posts' => __( 'Ignore Sticky Posts', 'conductor-qb' )
+							'offset' => __( 'Offset', 'conductor-query-builder' ),
+							//'paged' => __( 'Paged', 'conductor-query-builder' ), // TODO
+							'max_num_posts' => __( 'Maximum Number of Posts', 'conductor-query-builder' ),
+							'posts_per_page' => __( 'Posts Per Page', 'conductor-query-builder' ),
+							'ignore_sticky_posts' => __( 'Ignore Sticky Posts', 'conductor-query-builder' )
 						),
 						// Operators
 						'operators' => $this->operators
@@ -1412,17 +1417,17 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 						// Add this taxonomy to the tax_query parameters
 						$this->clauses['tax_query']['parameters'][$taxonomy . ':name'] = array(
-							'label' => sprintf( __( '%1$s: Name', 'conductor-qb' ), $taxonomy_obj->label ),
+							'label' => sprintf( __( '%1$s: Name', 'conductor-query-builder' ), $taxonomy_obj->label ),
 							'parameter' => 'tax_query',
 							'field' => 'operator'
 						);
 						$this->clauses['tax_query']['parameters'][$taxonomy . ':slug'] = array(
-							'label' => sprintf( __( '%1$s: Slug', 'conductor-qb' ), $taxonomy_obj->label ),
+							'label' => sprintf( __( '%1$s: Slug', 'conductor-query-builder' ), $taxonomy_obj->label ),
 							'parameter' => 'tax_query',
 							'field' => 'operator'
 						);
 						$this->clauses['tax_query']['parameters'][$taxonomy . ':term_id'] = array(
-							'label' => sprintf( __( '%1$s: Term ID', 'conductor-qb' ), $taxonomy_obj->label ),
+							'label' => sprintf( __( '%1$s: Term ID', 'conductor-query-builder' ), $taxonomy_obj->label ),
 							'parameter' => 'tax_query',
 							'field' => 'operator'
 						);
@@ -1436,29 +1441,29 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 * Conductor Query Builder Post Type
 			 */
 			$this->post_type_args = register_post_type( $this->post_type_name, array(
-				'label' => __( 'Queries', 'conductor-qb' ),
+				'label' => __( 'Queries', 'conductor-query-builder' ),
 				'labels' => array(
-					'name' => _x( 'Queries', 'post type general name', 'conductor-qb' ),
-					'singular_name' => _x( 'Query', 'post type singular name', 'conductor-qb' ),
-					'menu_name' => __( 'Queries', 'conductor-qb' ),
-					'name_admin_bar' => __( 'Conductor Query', 'conductor-qb' ),
-					'parent_item_colon' => __( 'Parent:', 'conductor-qb' ),
-					'all_items' => __( 'All Queries', 'conductor-qb' ),
-					'add_new_item' => __( 'Add New Query', 'conductor-qb' ),
-					'add_new' => __( 'Add New', 'conductor-qb' ),
-					'new_item' => __( 'New Query', 'conductor-qb' ),
-					'edit_item' => __( 'Edit Query', 'conductor-qb' ),
-					'update_item' => __( 'Update Query', 'conductor-qb' ),
-					'view_item' => __( 'View Query', 'conductor-qb' ),
-					'not_found' => __( 'No Conductor Queries found', 'conductor-qb' ),
-					'not_found_in_trash' => __( 'Not Conductor Queries found in Trash', 'conductor-qb' ),
-					'insert_into_item' => __( 'Insert into Query', 'conductor-qb' ),
-					'uploaded_to_this_item' => __( 'Uploaded to this Query', 'conductor-qb' ),
-					'items_list' => __( 'Conductor Queries list', 'conductor-qb' ),
-					'items_list_navigation' => __( 'Conductor Queries list navigation', 'conductor-qb' ),
-					'filter_items_list' => __( 'Filter Conductor Queries list', 'conductor-qb' ),
+					'name' => _x( 'Queries', 'post type general name', 'conductor-query-builder' ),
+					'singular_name' => _x( 'Query', 'post type singular name', 'conductor-query-builder' ),
+					'menu_name' => __( 'Queries', 'conductor-query-builder' ),
+					'name_admin_bar' => __( 'Conductor Query', 'conductor-query-builder' ),
+					'parent_item_colon' => __( 'Parent:', 'conductor-query-builder' ),
+					'all_items' => __( 'All Queries', 'conductor-query-builder' ),
+					'add_new_item' => __( 'Add New Query', 'conductor-query-builder' ),
+					'add_new' => __( 'Add New', 'conductor-query-builder' ),
+					'new_item' => __( 'New Query', 'conductor-query-builder' ),
+					'edit_item' => __( 'Edit Query', 'conductor-query-builder' ),
+					'update_item' => __( 'Update Query', 'conductor-query-builder' ),
+					'view_item' => __( 'View Query', 'conductor-query-builder' ),
+					'not_found' => __( 'No Conductor Queries found', 'conductor-query-builder' ),
+					'not_found_in_trash' => __( 'Not Conductor Queries found in Trash', 'conductor-query-builder' ),
+					'insert_into_item' => __( 'Insert into Query', 'conductor-query-builder' ),
+					'uploaded_to_this_item' => __( 'Uploaded to this Query', 'conductor-query-builder' ),
+					'items_list' => __( 'Conductor Queries list', 'conductor-query-builder' ),
+					'items_list_navigation' => __( 'Conductor Queries list navigation', 'conductor-query-builder' ),
+					'filter_items_list' => __( 'Filter Conductor Queries list', 'conductor-query-builder' ),
 				),
-				'description' => __( 'Conductor Query Builder queries; create queries for your Conductor Widgets', 'conductor-qb' ),
+				'description' => __( 'Conductor Query Builder queries; create queries for your Conductor Widgets', 'conductor-query-builder' ),
 				'public' => false,
 				'exclude_from_search' => true,
 				'show_ui' => true,
@@ -1488,15 +1493,19 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 */
 
 			// Notes (excerpt)
-			add_meta_box( 'conductor-qb-excerpt', __( 'Notes', 'conductor-qb' ), array( $this, 'meta_box_notes' ), null, 'side', 'core' );
+			add_meta_box( 'conductor-qb-excerpt', __( 'Notes', 'conductor-query-builder' ), array( $this, 'meta_box_notes' ), null, 'side', 'core' );
 
 			// If this isn't an auto draft
-			if ( $post_status !== 'auto-draft' )
+			if ( $post_status !== 'auto-draft' ) {
 				// Shortcode
-				add_meta_box( 'conductor-qb-shortcode', __( 'Shortcode', 'conductor-qb' ), array( $this, 'meta_box_shortcode' ), null, 'side', 'core' );
+				add_meta_box( 'conductor-qb-shortcode', __( 'Shortcode', 'conductor-query-builder' ), array( $this, 'meta_box_shortcode' ), null, 'side', 'core' );
+
+				// Function
+				add_meta_box( 'conductor-qb-function', __( 'Function', 'conductor-query-builder' ), array( $this, 'meta_box_function' ), null, 'side', 'core' );
+			}
 
 			// Preview
-			add_meta_box( 'conductor-qb-preview', __( 'Front-End Preview', 'conductor-qb' ), array( $this, 'meta_box_preview' ), null, 'side', 'core' );
+			add_meta_box( 'conductor-qb-preview', __( 'Front-End Preview', 'conductor-query-builder' ), array( $this, 'meta_box_preview' ), null, 'side', 'core' );
 
 
 			/*
@@ -1504,7 +1513,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 */
 
 			// Query Builder
-			add_meta_box( 'conductor-qb-query-builder', __( 'Query Builder', 'conductor-qb' ), array( $this, 'meta_box_query_builder' ), null, 'normal', 'core' );
+			add_meta_box( 'conductor-qb-query-builder', __( 'Query Builder', 'conductor-query-builder' ), array( $this, 'meta_box_query_builder' ), null, 'normal', 'core' );
 		}
 
 		/**
@@ -1555,7 +1564,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			global $post;
 
 			// Bail if we're not on a page that supports the Conductor Query Builder
-			if ( ! in_array( $hook, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) )
+			if ( ! apply_filters( 'conductor_query_builder_admin_enqueue_scripts', in_array( $hook, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $hook, $post, $this ) )
 				return;
 
 			// Grab the post ID
@@ -1594,16 +1603,16 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			wp_localize_script( 'conductor-query-builder-clipboard', 'conductor_qb_clipboard', array(
 				// Localization
 				'l10n' => array(
-					'copied' => __( 'Copied to clipboard!', 'conductor-qb' ),
+					'copied' => __( 'Copied to clipboard!', 'conductor-query-builder' ),
 					'error' => array(
-						'no_support' => __( 'Please manually select the text and copy.', 'conductor-qb' ),
+						'no_support' => __( 'Please manually select the text and copy.', 'conductor-query-builder' ),
 						'mac' => array(
-							'copy' => __( 'Press Command (⌘) + C to copy.', 'conductor-qb' ),
-							'cut' => __( 'Press Command (⌘) + X to cut.', 'conductor-qb' )
+							'copy' => __( 'Press Command (⌘) + C to copy.', 'conductor-query-builder' ),
+							'cut' => __( 'Press Command (⌘) + X to cut.', 'conductor-query-builder' )
 						),
 						'windows' => array(
-							'copy' => __( 'Press Ctrl + C to copy.', 'conductor-qb' ),
-							'cut' => __( 'Press Ctrl + X to cut.', 'conductor-qb' )
+							'copy' => __( 'Press Ctrl + C to copy.', 'conductor-query-builder' ),
+							'cut' => __( 'Press Ctrl + X to cut.', 'conductor-query-builder' )
 						)
 					)
 				)
@@ -1650,28 +1659,29 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				'values' => $this->values,
 				// Localization
 				'l10n' => array(
-					'add' => _x( '+', 'label for add', 'conductor-qb' ),
+					'add' => _x( '+', 'label for add', 'conductor-query-builder' ),
 					'ajax' => array(
 						'fail' => array(
-							'preview' => __( 'There was a problem fetching the front-end preview for this query.', 'conductor-qb' ),
-							'shortcode' => __( 'The shortcode for this query could not be generated at this time. Please try again.', 'conductor-qb' ) // TODO: Not currently utilized
+							'preview' => __( 'There was a problem fetching the front-end preview for this query.', 'conductor-query-builder' ),
+							'shortcode' => __( 'The shortcode for this query could not be generated at this time. Please try again.', 'conductor-query-builder' ) // TODO: Not currently utilized
 						)
 					),
-					'and' => _x( 'And', 'label for AND clause', 'conductor-qb' ),
-					'clause_group' => _x( 'Clause Group', 'label for clause group', 'conductor-qb' ),
-					'or' => _x( 'Or', 'label for OR clause', 'conductor-qb' ),
+					'and' => _x( 'And', 'label for AND clause', 'conductor-query-builder' ),
+					'clause_group' => _x( 'Clause Group', 'label for clause group', 'conductor-query-builder' ),
+					'or' => _x( 'Or', 'label for OR clause', 'conductor-query-builder' ),
 					'query' => array(
-						'select' => _x( '&mdash; Select a Query &mdash;', 'label for selecting a query', 'conductor-qb' ),
-						'none' => _x( 'We weren\'t able to find any existing queries. You can create a query with the query builder the "Create" tab.', 'label for no queries', 'conductor-qb' ),
+						'select' => _x( '&mdash; Select a Query &mdash;', 'label for selecting a query', 'conductor-query-builder' ),
+						'no_title' => __( '(no title)', 'conductor-query-builder' ),
+						'none' => _x( 'We weren\'t able to find any existing queries. You can create a query with the query builder the "Create" tab.', 'label for no queries', 'conductor-query-builder' ),
 					),
 					'shortcode' => array(
-						'add' => _x( '+', 'label for shortcode add', 'conductor-qb' ),
-						'confirm' => _x( 'You have unsaved changes to your query which will be lost. Are you sure you want to close this window?', 'message for shortcode confirm', 'conductor-qb' ),
-						'insert' => _x( 'Insert', 'label for shortcode insert', 'conductor-qb' ),
-						'create' => _x( 'Create &amp; Insert', 'label for shortcode create', 'conductor-qb' ),
-						'title' => _x( 'Insert or Create a Conductor Query', 'label for shortcode create', 'conductor-qb' )
+						'add' => _x( '+', 'label for shortcode add', 'conductor-query-builder' ),
+						'confirm' => _x( 'You have unsaved changes to your query which will be lost. Are you sure you want to close this window?', 'message for shortcode confirm', 'conductor-query-builder' ),
+						'insert' => _x( 'Insert', 'label for shortcode insert', 'conductor-query-builder' ),
+						'create' => _x( 'Create &amp; Insert', 'label for shortcode create', 'conductor-query-builder' ),
+						'title' => _x( 'Insert or Create a Conductor Query', 'label for shortcode create', 'conductor-query-builder' )
 					),
-					'sub_clause_group' => _x( 'Sub-Clause Group', 'label for sub-clause group', 'conductor-qb' )
+					'sub_clause_group' => _x( 'Sub-Clause Group', 'label for sub-clause group', 'conductor-query-builder' )
 				),
 				// Meta
 				'meta' => $this->get_post_meta( $post_id ),
@@ -1721,9 +1731,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			if ( ! apply_filters( 'conductor_query_builder_display_media_buttons', in_array( $pagenow, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $pagenow ) )
 				return;
 		?>
-			<a href="#" class="button conductor-qb-button conductor-qb-add-shortcode" id="conductor-qb-add-shortcode" title="<?php esc_attr_e( 'Add Conductor Query Shortcode', 'conductor-qb' ); ?>">
-				<strong class="conductor-branding conductor-branding-c"><?php _ex( 'C', 'C is for Conductor', 'conductor-qb' ); ?></strong>
-				<?php _e( 'Add Conductor', 'conductor-qb' ); ?>
+			<a href="#" class="button conductor-qb-button conductor-qb-add-shortcode" id="conductor-qb-add-shortcode" title="<?php esc_attr_e( 'Add Conductor Query Shortcode', 'conductor-query-builder' ); ?>">
+				<strong class="conductor-branding conductor-branding-c"><?php _ex( 'C', 'C is for Conductor', 'conductor-query-builder' ); ?></strong>
+				<?php _e( 'Add Conductor', 'conductor-query-builder' ); ?>
 			</a>
 		<?php
 		}
@@ -1773,7 +1783,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					update_post_meta( $post_id, $this->meta_key_prefix . $this->conductor_widget_meta_key_suffix, $simple_conductor_query_builder_data );
 			}
 
-			// If we have a query mode
+			// If we have a query builder mode
 			if ( $query_builder_mode ) {
 				// If this is a revision and we have a post meta value from the original post
 				if ( $parent_id && ( $query_builder_mode = get_post_meta( $parent_id, $this->meta_key_prefix . $this->query_builder_mode_meta_key_suffix, true ) ) )
@@ -1793,7 +1803,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				// Grab the post meta for this clause type
 				$post_meta = ( ! $parent_id ) ? $this->get_clause_type_post_meta( $post_id, $clause_type, $conductor_query_builder_data ) : array();
 
-				// If we have post meta to save or this is a revision
+				// If we have post meta or this is a revision
 				if ( ! empty( $post_meta ) || $parent_id ) {
 					// If this is a revision and we have a post meta value from the original post
 					if ( $parent_id && ( $original_post_meta = get_post_meta( $parent_id, $this->meta_key_prefix . $clause_type, true ) ) )
@@ -1834,10 +1844,10 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 * This function prints scripts in the admin footer.
 		 */
 		public function admin_print_footer_scripts() {
-			global $hook_suffix;
+			global $hook_suffix, $post;
 
 			// Bail if we're not on a page that supports the Conductor Query Builder
-			if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) )
+			if ( ! apply_filters( 'conductor_query_builder_admin_print_footer_scripts', in_array( $hook_suffix, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $hook_suffix, $post, $this ) )
 				return;
 		?>
 			<script type="text/javascript">
@@ -1989,10 +1999,10 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				return $fields;
 
 			// Add the Conductor Query Builder Conductor Widget meta key
-			$fields[$this->meta_key_prefix . $this->conductor_widget_meta_key_suffix] = __( 'Conductor Query Builder: Conductor Widget Instance', 'conductor-qb' );
+			$fields[$this->meta_key_prefix . $this->conductor_widget_meta_key_suffix] = __( 'Conductor Query Builder: Conductor Widget Instance', 'conductor-query-builder' );
 
 			// Add the Conductor Query Builder query builder mode meta key
-			$fields[$this->meta_key_prefix . $this->query_builder_mode_meta_key_suffix] = __( 'Conductor Query Builder: Query Builder Mode', 'conductor-qb' );
+			$fields[$this->meta_key_prefix . $this->query_builder_mode_meta_key_suffix] = __( 'Conductor Query Builder: Query Builder Mode', 'conductor-query-builder' );
 
 			// Grab the clause types
 			$clause_types = $this->get_clause_types();
@@ -2003,10 +2013,10 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				$clause_type_label = ucwords( str_replace( array('_', '-' ), ' ', $clause_type ) );
 
 				// Add the Conductor Query Builder clause type meta key
-				$fields[$this->meta_key_prefix . $clause_type] = sprintf( __( 'Conductor Query Builder: %1$s Clause Type', 'conductor-qb' ), $clause_type_label );
+				$fields[$this->meta_key_prefix . $clause_type] = sprintf( __( 'Conductor Query Builder: %1$s Clause Type', 'conductor-query-builder' ), $clause_type_label );
 
 				// Add the Conductor Query Builder clause type query arguments meta key
-				$fields[$this->meta_key_prefix . $clause_type . $this->query_args_meta_key_suffix] = sprintf( __( 'Conductor Query Builder: %1$s Clause Type Query Arguments', 'conductor-qb' ), $clause_type_label );
+				$fields[$this->meta_key_prefix . $clause_type . $this->query_args_meta_key_suffix] = sprintf( __( 'Conductor Query Builder: %1$s Clause Type Query Arguments', 'conductor-query-builder' ), $clause_type_label );
 			}
 
 			return $fields;
@@ -2141,7 +2151,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		}
 
 		/**
-		 * This function returns the meta query builder.
+		 * This function returns the Conductor Query Builder meta.
 		 */
 		public function get_post_meta( $post_id = false ) {
 			global $post;
@@ -2218,8 +2228,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$post_id = ( empty( $post_id ) ) ? get_post_field( 'ID', $post ) : $post_id;
 
 			// Bail if the post type isn't a Conductor Query Builder post type
-			if ( get_post_type( $post_id ) !== $this->post_type_name )
-				return array();
+			// TODO: This logic interfered with Beaver Builder logic
+			//if ( get_post_type( $post_id ) !== $this->post_type_name )
+			//	return array();
 
 			// Post meta
 			$post_meta = array();
@@ -2851,8 +2862,12 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * This function renders the shortcode query builder elements.
 		 */
-		public function shortcode_query_builder() {
+		public function shortcode_query_builder( $form_element = 'form', $conductor_widget_instance = array() ) {
 			global $post;
+
+			// Bail if we shouldn't render the shortcode query builder markup
+			if ( ! apply_filters( 'conductor_query_builder_output_shortcode_query_builder_markup', true, $post, $this ) )
+				return;
 
 			// Grab the post ID
 			$post_id = get_post_field( 'ID', $post );
@@ -2864,15 +2879,15 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$conductor_widget = Conduct_Widget();
 
 			// Grab the Conductor Widget instance data
-			$conductor_widget_instance = $this->get_conductor_widget_instance( $post_id );
+			$conductor_widget_instance = ( empty( $conductor_widget_instance ) ) ? $this->get_conductor_widget_instance( $post_id ) : $conductor_widget_instance;
 		?>
 			<?php // Thickbox requires an element within the wrapper ?>
 			<div id="conductor-qb-shortcode-wrapper-container" class="conductor-qb-shortcode-wrapper-container">
 				<div id="conductor-qb-shortcode-wrapper" class="conductor-qb-shortcode-wrapper">
 					<div id="conductor-qb-shortcode-tabs-wrapper" class="conductor-qb-tabs-wrapper conductor-qb-shortcode-tabs-wrapper">
 						<h2 class="nav-tab-wrapper current conductor-qb-tabs conductor-qb-shortcode-tabs">
-							<a class="nav-tab nav-tab-active" href="#conductor-qb-shortcode-insert-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="insert"><?php _e( 'Insert', 'conductor-qb' ); ?></a>
-							<a class="nav-tab" href="#conductor-qb-shortcode-output-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="create"><?php _e( 'Create', 'conductor-qb' ); ?></a>
+							<a class="nav-tab nav-tab-active" href="#conductor-qb-shortcode-insert-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="insert"><?php _e( 'Insert', 'conductor-query-builder' ); ?></a>
+							<a class="nav-tab" href="#conductor-qb-shortcode-output-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="create"><?php _e( 'Create', 'conductor-query-builder' ); ?></a>
 						</h2>
 					</div>
 
@@ -2888,7 +2903,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							/*
 							 * Shortcode Create Query Builder
 							 */
-							Conductor_Query_Builder_Admin_Views::shortcode_query_builder_create_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget );
+							Conductor_Query_Builder_Admin_Views::shortcode_query_builder_create_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget, $form_element );
 						?>
 					</div>
 
@@ -2922,6 +2937,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 * Query arguments.
 		 */
 		public function conductor_query_args( $query_args ) {
+			global $wp_query;
+
 			// If we're currently doing a preview
 			if ( $this->doing_preview ) {
 				// If the posts per page argument is not set to 1
@@ -2939,8 +2956,17 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			if ( $this->current_query_builder_mode === 'simple' || empty( $this->current_query_args ) )
 				return $query_args;
 
-			// Grab the paged query argument from the original query
-			$paged = ( isset( $query_args['paged'] ) ) ? $query_args['paged'] : ( ( isset( $query_args['_conductor'] ) && isset( $query_args['_conductor']['paged'] ) ) ? $query_args['_conductor']['paged'] : 1 );
+			// Get the "true" paged query variable from the main query (defaulting to 1)
+			$paged = $query_args['paged'] = ( int ) get_query_var( 'paged' );
+			// Use the paged query var if set
+			if ( empty( $query_args['paged'] ) && isset( $wp_query->query['paged'] ) )
+				$paged = ( int ) $wp_query->query['paged'];
+			// Single post uses "page" instead of "paged"
+			else if ( is_single() && ( int ) get_query_var( 'page' ) )
+				$paged = ( int ) get_query_var( 'page' );
+			// Otherwise assume page 1
+			else if ( empty( $query_args['paged'] ) )
+				$paged  = 1;
 
 			// Grab the _conductor query argument from the original query
 			$_conductor = ( isset( $query_args['_conductor'] ) ) ? $query_args['_conductor'] : array();
@@ -2968,6 +2994,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Set the _conductor query argument
 			$query_args['_conductor'] = $_conductor;
+
+			// If we shouldn't have an offset
+			if ( isset( $query_args['offset'] ) && $query_args['offset'] === 0 && ( ! isset( $this->current_query_args['offset'] ) || $this->current_query_args['offset'] === 0 ) )
+				// Unset the offset
+				unset( $query_args['offset'] );
 
 			// If we're currently doing a preview
 			if ( $this->doing_preview ) {
@@ -3064,7 +3095,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			if ( ! $this->doing_preview || ( is_admin() && $query->have_posts() ) )
 				return;
 		?>
-			<p class="conductor-qb-preview-no-results conductor-qb-preview-no-posts"><strong><?php _e( 'This query returned no results. Please adjust the query arguments and try again.', 'conductor-qb' ); ?></strong></p>
+			<p class="conductor-qb-preview-no-results conductor-qb-preview-no-posts"><strong><?php _e( 'This query returned no results. Please adjust your query and try again.', 'conductor-query-builder' ); ?></strong></p>
 		<?php
 		}
 
@@ -3213,9 +3244,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 */
 		public function meta_box_notes( $post ) {
 		?>
-			<label class="screen-reader-text" for="excerpt"><?php _e( 'Notes', 'conductor-qb' ) ?></label>
+			<label class="screen-reader-text" for="excerpt"><?php _e( 'Notes', 'conductor-query-builder' ) ?></label>
 			<textarea rows="1" cols="40" name="excerpt" id="excerpt"><?php echo get_post_field( 'post_excerpt', $post ); ?></textarea>
-			<p><?php _e( 'Add notes to help describe this query (for internal use only).', 'conductor-qb' ); ?></p>
+			<p><?php _e( 'Add notes to help describe this query (for internal use only).', 'conductor-query-builder' ); ?></p>
 		<?php
 		}
 
@@ -3224,11 +3255,24 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 */
 		public function meta_box_shortcode( $post ) {
 		?>
-			<label class="screen-reader-text" for="excerpt"><?php _e( 'Shortcode', 'conductor-qb' ) ?></label>
-			<p><?php _e( 'Display this query anywhere in your content by using the following shortcodes:', 'conductor-qb' ); ?></p>
-			<p><code>[<?php echo $this->shortcode; ?> id="<?php echo esc_attr( get_post_field( 'ID', $post ) ); ?>"]</code> <span class="conductor-qb-clipboard" title="<?php _e( 'Copy to clipboard', 'conductor-qb' ); ?>" data-clipboard-text="<?php echo esc_attr( '[' . $this->shortcode . ' id="' . get_post_field( 'ID', $post ) . '"]' ); ?>"><span class="dashicons dashicons-clipboard"></span></span></p>
-			<p><code>[<?php echo $this->shortcode; ?> id="<?php echo esc_attr( get_post_field( 'ID', $post ) ); ?>" title="<?php echo esc_attr( get_the_title( $post ) ); ?>"]</code> <span class="conductor-qb-clipboard" title="<?php _e( 'Copy to clipboard', 'conductor-qb' ); ?>" data-clipboard-text="<?php echo esc_attr( '[' . $this->shortcode . ' id="' . get_post_field( 'ID', $post ) . '" title="' . esc_attr( get_the_title( $post ) ) . '"]' ); ?>"><span class="dashicons dashicons-clipboard"></span></span></p>
-			<p><span class="description"><?php _e( 'Hint: You can specify a custom title in the <code>title</code> attribute.', 'conductor-qb' ); ?></span></p>
+			<label class="screen-reader-text" for="excerpt"><?php _e( 'Shortcode', 'conductor-query-builder' ) ?></label>
+			<p><?php _e( 'Display this query anywhere in your content by using the following shortcodes:', 'conductor-query-builder' ); ?></p>
+			<p><code>[<?php echo $this->shortcode; ?> id="<?php echo esc_attr( get_post_field( 'ID', $post ) ); ?>"]</code> <span class="conductor-qb-clipboard" title="<?php _e( 'Copy to clipboard', 'conductor-query-builder' ); ?>" data-clipboard-text="<?php echo esc_attr( '[' . $this->shortcode . ' id="' . get_post_field( 'ID', $post ) . '"]' ); ?>"><span class="dashicons dashicons-clipboard"></span></span></p>
+			<p><code>[<?php echo $this->shortcode; ?> id="<?php echo esc_attr( get_post_field( 'ID', $post ) ); ?>" title="<?php echo esc_attr( get_the_title( $post ) ); ?>"]</code> <span class="conductor-qb-clipboard" title="<?php _e( 'Copy to clipboard', 'conductor-query-builder' ); ?>" data-clipboard-text="<?php echo esc_attr( '[' . $this->shortcode . ' id="' . get_post_field( 'ID', $post ) . '" title="' . esc_attr( get_the_title( $post ) ) . '"]' ); ?>"><span class="dashicons dashicons-clipboard"></span></span></p>
+			<p><span class="description"><?php _e( 'Hint: You can specify a custom title in the <code>title</code> attribute.', 'conductor-query-builder' ); ?></span></p>
+		<?php
+		}
+
+		/**
+		 * This function renders the Function meta box.
+		 */
+		public function meta_box_function( $post ) {
+		?>
+			<label class="screen-reader-text" for="excerpt"><?php _e( 'Function', 'conductor-query-builder' ) ?></label>
+			<p><?php _e( 'Display this query anywhere in your theme by using the following functions:', 'conductor-query-builder' ); ?></p>
+			<p><textarea class="conductor-qb-function" cols="32" rows="3" readonly="readonly" onclick="this.focus(); this.select();">&lt;?php if ( function_exists( '<?php echo $this->function; ?>' ) ) <?php echo $this->function; ?>( <?php echo get_post_field( 'ID', $post ); ?> ); ?&gt;</textarea> <span class="conductor-qb-clipboard" title="<?php _e( 'Copy to clipboard', 'conductor-query-builder' ); ?>" data-clipboard-text="<?php echo esc_attr( '&lt;?php if ( function_exists( \'' .  $this->function . '\' ) ) ' . $this->function . '( ' . get_post_field( 'ID', $post ) . ' ); ?&gt;' ); ?>"><span class="dashicons dashicons-clipboard"></span></span></p>
+			<p><textarea class="conductor-qb-function" cols="32" rows="5" readonly="readonly" onclick="this.focus(); this.select();">&lt;?php if ( function_exists( '<?php echo $this->function; ?>' ) ) <?php echo $this->function; ?>( <?php echo get_post_field( 'ID', $post ); ?>, '<?php echo get_the_title( $post ); ?>' ); ?&gt;</textarea> <span class="conductor-qb-clipboard" title="<?php _e( 'Copy to clipboard', 'conductor-query-builder' ); ?>" data-clipboard-text="<?php echo esc_attr( '&lt;?php if ( function_exists( \'' .  $this->function . '\' ) ) ' . $this->function . '( ' . get_post_field( 'ID', $post ) . ', \'' . get_the_title( $post ) . '\' ); ?&gt;' ); ?>"><span class="dashicons dashicons-clipboard"></span></span></p>
+			<p><span class="description"><?php _e( 'Hint: You can specify a custom title in the <code>title</code> (second) argument.', 'conductor-query-builder' ); ?></span></p>
 		<?php
 		}
 
@@ -3237,8 +3281,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 */
 		public function meta_box_preview( $post ) {
 		?>
-			<label class="screen-reader-text" for="excerpt"><?php _e( 'Front-End Preview', 'conductor-qb' ) ?></label>
-			<p><?php _e( 'The following is a preview of what this query will output on the front-end. Note: This preview will only show the first result of the query and is not styled to match the front-end (CSS).', 'conductor-qb' ); ?></p>
+			<label class="screen-reader-text" for="excerpt"><?php _e( 'Front-End Preview', 'conductor-query-builder' ) ?></label>
+			<p><?php _e( 'The following is a preview of what this query will output on the front-end. Note: This preview will only show the first result of the query and is not styled to match the front-end (CSS).', 'conductor-query-builder' ); ?></p>
 			<hr />
 
 			<div id="conductor-query-builder-preview" class="conductor-query-builder-preview">
@@ -3258,7 +3302,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					// Setup the post meta
 					$this->preview_data['post_meta'] = $this->get_post_meta( $post_id );
 
-					// Setup the Conductor Widget instance POST data (POST is required for get_simple_query_builder_data())
+					// Setup the Conductor Widget instance POST data (POST data is required for get_simple_query_builder_data())
 					$_POST['widget-' . $conductor_widget->id_base] = array();
 					$_POST['widget-' . $conductor_widget->id_base][0] = $this->get_conductor_widget_instance( $post_id );
 					$_POST['widget-' . $conductor_widget->id_base][0]['output'] = wp_json_encode( $_POST['widget-' . $conductor_widget->id_base][0]['output'] );
@@ -3285,7 +3329,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * This function renders the Query Builder meta box.
 		 */
-		public function meta_box_query_builder( $post ) {
+		public function meta_box_query_builder( $post, $args, $conductor_widget_instance = array() ) {
 			// Add an nonce field
 			wp_nonce_field( 'conductor_query_builder_meta_box', 'conductor_qb_nonce' );
 
@@ -3299,13 +3343,13 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$conductor_widget = Conduct_Widget();
 
 			// Grab the Conductor Widget instance data
-			$conductor_widget_instance = $this->get_conductor_widget_instance( $post_id );
+			$conductor_widget_instance = ( empty( $conductor_widget_instance ) ) ? $this->get_conductor_widget_instance( $post_id ) : $conductor_widget_instance;
 		?>
-			<div id="conductor-qb-query-builder-meta-box-tabs-wrapper" class="conductor-qb-tabs-wrapper conductor-qb-query-builder-meta-box-tabs-wrapper">
-				<h2 class="nav-tab-wrapper current conductor-qb-tabs conductor-qb-query-builder-meta-box-tabs">
-					<a class="nav-tab nav-tab-active" href="#conductor-qb-meta-box-query-builder-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Query Builder', 'conductor-qb' ); ?></a>
-					<a class="nav-tab" href="#conductor-qb-meta-box-output-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Output', 'conductor-qb' ); ?></a>
-					<a class="nav-tab" href="#conductor-qb-meta-box-advanced-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Advanced', 'conductor-qb' ); ?></a>
+			<div id="conductor-qb-query-builder-meta-box-tabs-wrapper" class="conductor-qb-tabs-wrapper conductor-qb-query-builder-meta-box-tabs-wrapper conductor-qb-cf">
+				<h2 class="nav-tab-wrapper current conductor-qb-tabs conductor-qb-query-builder-meta-box-tabs conductor-qb-cf">
+					<a class="nav-tab nav-tab-active" href="#conductor-qb-meta-box-query-builder-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Query Builder', 'conductor-query-builder' ); ?></a>
+					<a class="nav-tab" href="#conductor-qb-meta-box-output-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Output', 'conductor-query-builder' ); ?></a>
+					<a class="nav-tab" href="#conductor-qb-meta-box-advanced-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Advanced', 'conductor-query-builder' ); ?></a>
 				</h2>
 			</div>
 
@@ -3854,7 +3898,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * This function returns an instance for use in Conductor Widgets.
 		 */
-		public function get_conductor_widget_instance( $post_id = false, $title = '' ) {
+		// TODO: Here we need to set feature_many if the query builder mode for this query is advanced
+		public function get_conductor_widget_instance( $post_id = false, $title = '', $instance = array() ) {
 			global $post;
 
 			// Post ID
@@ -3864,7 +3909,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$conductor_widget = Conduct_Widget();
 
 			// Grab the Conductor Widget instance data
-			$instance = get_post_meta( $post_id, $this->meta_key_prefix . $this->conductor_widget_meta_key_suffix, true );
+			$instance = ( empty( $instance ) ) ? get_post_meta( $post_id, $this->meta_key_prefix . $this->conductor_widget_meta_key_suffix, true ) : $instance;
 
 			// Ensure we have an array for empty meta values (as of WordPress 4.6, an empty string is returned when meta does not exist)
 			if ( empty( $instance ) && ! is_array( $instance ) )
@@ -3897,7 +3942,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * This function renders a Conductor query.
 		 */
-		public function render( $post_id = false, $title = '', $type = 'widget' ) {
+		public function render( $post_id = false, $title = '', $type = 'widget', $query_args = array(), $current_query_builder_mode = false, $current_conductor_widget_instance = array() ) {
 			global $post;
 
 			// Post ID
@@ -3916,7 +3961,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			add_filter( 'conductor_query_has_pagination', array( $this, 'conductor_query_has_pagination' ), 10, 2 );
 
 			// Grab the query arguments
-			$query_args = $this->get_query_args( $post_id );
+			$query_args = ( empty( $query_args ) ) ? $this->get_query_args( $post_id ) : $query_args;
 
 			// If we have query arguments or we're doing a preview
 			if ( ! empty( $query_args ) || $this->doing_preview ) {
@@ -3929,81 +3974,78 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				// Grab the post status
 				$post_status = get_post_status( $the_post );
 
-				// If this is a Conductor query
-				if ( $post_type === $this->post_type_name ) {
-					// If this Conductor query isn't published and we're on the front-end
-					if ( $post_status !== 'publish' && ! is_admin() ) {
-						// If the current user is logged in and can edit this piece of content
-						if ( is_user_logged_in() && current_user_can( 'edit_post', get_post_field( 'ID', $the_post ) ) )
-							// Output a message to the user
-							printf( '<div class="conductor-qb-notice conductor-qb-editor-notice"><p><strong>%1$s</strong> %2$s</p></div>',
-								__( 'Please Note:', 'conductor-qb' ),
-								sprintf( '%1$s <br /><small><em>%2$s</em></small>',
-									__( 'The Conductor Query which you have chosen to display is not currently published. Please publish the query and try again.', 'conductor-qb' ),
-									__( 'This message is only displayed to logged in users with permissions to publish this query. You are seeing this message because you are logged in.', 'conductor-qb' )
-								)
-							);
-					}
-					// Otherwise, this Conductor Query is published or we're in the admin
-					else {
-						// Add this Conductor Query to the list of rendered queries
-						$this->rendered[$type][] = $post_id;
-
-						// Grab the render number for this query
-						$number = count( $this->rendered[$type] );
-
-						// Grab the query builder mode for this query and set the global reference
-						$this->current_query_builder_mode = $this->get_query_builder_mode_for_query( $post_id );
-
-						// Grab the Conductor Widget instance
-						$conductor_widget = Conduct_Widget();
-
-						// Grab the Conductor Widget instance data for this query and set the global reference
-						$this->current_conductor_widget_instance = $this->get_conductor_widget_instance( $post_id, $title );
-
-						// Set the global query arguments reference
-						$this->current_query_args = $query_args;
-
-						// Set the global doing Conductor Query flag
-						$this->doing_conductor_query = true;
-
-						// Mimic dynamic sidebar parameters
-						$dynamic_sidebar_params = apply_filters( 'dynamic_sidebar_params', array(
-							array(
-								'name' => __( 'Conductor Query Builder Temporary Sidebar', 'conductor-qb' ),
-								'id' => 'conductor-qb-temporary-sidebar',
-								'description' => __( 'This widget area is the temporary sidebar used by Conductor Query Builder when rendering a Conductor Query.', 'conductor-qb' ),
-								'class' => '', // This is almost always empty
-								'before_widget' => '<div id="' . esc_attr( sprintf( 'conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '" class="widget conductor-qb-widget ' . esc_attr( sprintf( 'conductor-qb-widget-%1$s conductor-qb-widget-%1$s-%2$s conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . ' %s">',
-								'after_widget' => '</div>',
-								'before_title' => '<h3 class="widgettitle widget-title conductor-qb-widget-title ' . esc_attr( sprintf( 'conductor-qb-widget-title-%1$s conductor-qb-widget-title-%1$s-%2$s conductor-qb-widget-title-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '">',
-								'after_title' => '</h3>',
-								'widget_id' => $conductor_widget->id_base . '-' . $number,
-								'widget_name' => $conductor_widget->name
-							),
-							array(
-								'number' => $this->the_widget_number
+				// If this is a Conductor Query, this Conductor Query isn't published, and we're on the front-end
+				if ( $post_type === $this->post_type_name && $post_status !== 'publish' && ! is_admin() ) {
+					// If the current user is logged in and can edit this piece of content
+					if ( is_user_logged_in() && current_user_can( 'edit_post', get_post_field( 'ID', $the_post ) ) )
+						// Output a message to the user
+						printf( '<div class="conductor-qb-notice conductor-qb-editor-notice"><p><strong>%1$s</strong> %2$s</p></div>',
+							__( 'Please Note:', 'conductor-query-builder' ),
+							sprintf( '%1$s <br /><small><em>%2$s</em></small>',
+								__( 'The Conductor Query which you have chosen to display is not currently published. Please publish the query and try again.', 'conductor-query-builder' ),
+								__( 'This message is only displayed to logged in users with permissions to publish this query. You are seeing this message because you are logged in.', 'conductor-query-builder' )
 							)
-						) );
+						);
+				}
+				// Otherwise, this Conductor Query is published, we're in the admin, or this isn't a Conductor Query
+				else {
+					// Add this Conductor Query to the list of rendered queries
+					$this->rendered[$type][] = $post_id;
 
-						// Arguments
-						$args = apply_filters( 'conductor_query_builder_the_widget_args', array(
-							'before_widget' => $dynamic_sidebar_params[0]['before_widget'],
-							'after_widget' => $dynamic_sidebar_params[0]['after_widget'],
-							'before_title' => $dynamic_sidebar_params[0]['before_title'],
-							'after_title' => $dynamic_sidebar_params[0]['after_title'],
-						), $dynamic_sidebar_params, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $conductor_widget, $this );
+					// Grab the render number for this query
+					$number = count( $this->rendered[$type] );
 
-						do_action( 'conductor_query_builder_render_before', $type, $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
-						do_action( 'conductor_query_builder_render_' . $type . '_before', $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+					// Grab the query builder mode for this query and set the global reference
+					$this->current_query_builder_mode = ( empty( $current_query_builder_mode ) ) ? $this->get_query_builder_mode_for_query( $post_id ) : $current_query_builder_mode;
 
-						// Conductor Widget
-						// TODO: There's a chance sprintf in WordPress isn't working properly here for some reason
-						the_widget( get_class( $conductor_widget ), $this->current_conductor_widget_instance, $args );
+					// Grab the Conductor Widget instance
+					$conductor_widget = Conduct_Widget();
 
-						do_action( 'conductor_query_builder_render_' . $type . '_after', $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
-						do_action( 'conductor_query_builder_render_after', $type, $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
-					}
+					// Grab the Conductor Widget instance data for this query and set the global reference
+					$this->current_conductor_widget_instance = $this->get_conductor_widget_instance( $post_id, $title, $current_conductor_widget_instance );
+
+					// Set the global query arguments reference
+					$this->current_query_args = $query_args;
+
+					// Set the global doing Conductor Query flag
+					$this->doing_conductor_query = true;
+
+					// Mimic dynamic sidebar parameters
+					$dynamic_sidebar_params = apply_filters( 'dynamic_sidebar_params', array(
+						array(
+							'name' => __( 'Conductor Query Builder Temporary Sidebar', 'conductor-query-builder' ),
+							'id' => 'conductor-qb-temporary-sidebar',
+							'description' => __( 'This widget area is the temporary sidebar used by Conductor Query Builder when rendering a Conductor Query.', 'conductor-query-builder' ),
+							'class' => '', // This is almost always empty
+							'before_widget' => '<div id="' . esc_attr( sprintf( 'conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '" class="widget conductor-qb-widget ' . esc_attr( sprintf( 'conductor-qb-widget-%1$s conductor-qb-widget-%1$s-%2$s conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . ' %s">',
+							'after_widget' => '</div>',
+							'before_title' => '<h3 class="widgettitle widget-title conductor-qb-widget-title ' . esc_attr( sprintf( 'conductor-qb-widget-title-%1$s conductor-qb-widget-title-%1$s-%2$s conductor-qb-widget-title-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '">',
+							'after_title' => '</h3>',
+							'widget_id' => $conductor_widget->id_base . '-' . $number,
+							'widget_name' => $conductor_widget->name
+						),
+						array(
+							'number' => $this->the_widget_number
+						)
+					) );
+
+					// Arguments
+					$args = apply_filters( 'conductor_query_builder_the_widget_args', array(
+						'before_widget' => $dynamic_sidebar_params[0]['before_widget'],
+						'after_widget' => $dynamic_sidebar_params[0]['after_widget'],
+						'before_title' => $dynamic_sidebar_params[0]['before_title'],
+						'after_title' => $dynamic_sidebar_params[0]['after_title'],
+					), $dynamic_sidebar_params, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $conductor_widget, $this );
+
+					do_action( 'conductor_query_builder_render_before', $type, $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+					do_action( 'conductor_query_builder_render_' . $type . '_before', $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+
+					// Conductor Widget
+					// TODO: There's a chance sprintf in WordPress logic isn't working properly here for some reason
+					the_widget( get_class( $conductor_widget ), $this->current_conductor_widget_instance, $args );
+
+					do_action( 'conductor_query_builder_render_' . $type . '_after', $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
+					do_action( 'conductor_query_builder_render_after', $type, $post_id, $title, $args, $this->current_query_args, $this->current_query_builder_mode, $this->current_conductor_widget_instance, $number, $this );
 				}
 			}
 

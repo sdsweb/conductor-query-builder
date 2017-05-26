@@ -39,7 +39,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Toolbar' ) ) {
 		 * This function sets up all of the actions and filters on instance. It also loads (includes)
 		 * the required files and assets.
 		 */
-		function __construct( ) {
+		function __construct() {
 			// Hooks
 			add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 9999 ); // Admin Bar Menu (late)
 		}
@@ -53,7 +53,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Toolbar' ) ) {
 				return;
 
 			// Grab the Conductor Admin menu page slug
-			$conductor_admin_menu_page = Conductor_Admin_Options::get_menu_page();
+			$conductor_admin_menu_page = ( class_exists( 'Conductor_Admin_Options' ) && method_exists( 'Conductor_Admin_Options', 'get_menu_page' ) ) ? Conductor_Admin_Options::get_menu_page() : ( ( class_exists( 'Conductor_Admin_Options' ) ) ? str_replace( 'toplevel_page_', '', Conductor_Admin_Options::$menu_page ) : 'conductor' );
 
 			// Grab the Conductor Query Builder instance
 			$conductor_query_builder = Conduct_Query_Builder();

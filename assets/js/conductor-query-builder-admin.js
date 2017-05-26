@@ -5,7 +5,7 @@
 // TODO: Create a function to set/check flags
 // TODO: Shorten variable and property names
 // TODO: For BETWEEN/NOT BETWEEN we need to set maximumSelectionLength to the 'limit' value
-// TODO: All render functions that call the WordPress prototype can likely be removed in a future version
+// TODO: All render functions that only call the WordPress prototype can likely be removed in a future version
 
 var conductor_query_builder = conductor_query_builder || {};
 
@@ -13,6 +13,7 @@ var conductor_query_builder = conductor_query_builder || {};
 	"use strict";
 
 	var	$body,
+		$document,
 		$conductor_qb_preview,
 		Conductor_Query_Builder_Wrapper_View,
 		Conductor_Query_Builder_View,
@@ -156,9 +157,15 @@ var conductor_query_builder = conductor_query_builder || {};
 				/**
 				 * This function resets the query builder Backbone components.
 				 */
-				reset: function() {
+				reset: function( meta ) {
 					// Reset the Conductor Query Builder Backbone View
 					Conductor_Query_Builder_View.reset();
+
+					// If we have meta
+					if ( typeof meta !== 'undefined' ) {
+						// Set the Conductor Query Builder meta
+						conductor_query_builder.meta = meta;
+					}
 
 					// Re-render the Conductor Query Builder Backbone View
 					Conductor_Query_Builder_View.render();
@@ -234,7 +241,8 @@ var conductor_query_builder = conductor_query_builder || {};
 
 					// Create a new instance of the Conductor Query Builder Shortcode Create Title Backbone View
 					Conductor_Query_Builder_Shortcode_Create_Title_View = new conductor_query_builder.Backbone.Views.Shortcode_Create_Title( {
-						type: 'shortcode-create-title'
+						type: 'shortcode-create-title',
+						title: conductor_query_builder.title || ''
 					} );
 					conductor_query_builder.Backbone.instances.views.shortcode_create_title = Conductor_Query_Builder_Shortcode_Create_Title_View;
 
@@ -265,21 +273,30 @@ var conductor_query_builder = conductor_query_builder || {};
 			conductor: {
 				// Widgets
 				widget: {
-					reset: function() {
+					reset: function( data ) {
+						// Defaults
+						data = data || {};
+
 						var $input = false,
 							output_element_ids = [];
 
 						// Loop through the Conductor widget defaults (delay 1ms; new thread)
 						setTimeout( function() {
 							_.each( conductor_query_builder.widgets.conductor.defaults, function( default_value, name ) {
-								// Bail if we don't have a value or this is the output features default
-								// TODO: Add this to localized data to allow for adjustment by developers
+								// Bail if this is the output features default
+								// TODO: Add this option name to localized data to allow for adjustment by developers
 								if ( name === 'output_features' ) {
 									return;
 								}
 
 								// Reset the $input reference
 								$input = false;
+
+								// If we have data and this name exists in data
+								if ( ! _.isEmpty( data ) && data.hasOwnProperty( name ) ) {
+									// Set the default value to the data value
+									default_value = data[name];
+								}
 
 								// If this default value is an object
 								if ( _.isObject( default_value ) ) {
@@ -433,7 +450,7 @@ var conductor_query_builder = conductor_query_builder || {};
 									switch ( name ) {
 										// Widget Size
 										case 'widget_size':
-											// Grab the correct :input element for this default value
+											// Grab the correct input element for this default value
 											$input = Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-widget-size-value:checked' );
 										break;
 									}
@@ -441,7 +458,7 @@ var conductor_query_builder = conductor_query_builder || {};
 									// If we have an input element
 									if ( $input.length ) {
 										// Switch the sub-default value from a Boolean false to an empty string
-										default_value = ( typeof default_value === 'boolean' && ! default_value ) ? '' : default_value;
+										default_value = ( typeof default_value === 'boolean' && ! default_value ) ? '' : ( ( typeof default_value === 'boolean' ) ? "true": default_value );
 
 										// If the input value doesn't match the default value
 										if ( $input.val() !== default_value ) {
@@ -668,8 +685,11 @@ var conductor_query_builder = conductor_query_builder || {};
 	 */
 	conductor_query_builder.Backbone.Views.Query_Builder_Wrapper = wp.Backbone.View.extend( {
 		el: '#conductor-qb-query-builder',
+		has_user_changed_feature_type: false,
+		feature_type_value: '',
 		// Events
 		events: {
+			'change .conductor-select-feature-type': 'setHasUserChangedFeatureTypeFlag',
 			'change :input': 'previewQuery',
 			'change .conductor-widget-size-value': 'maybeShowConductorWidgetColumnsSetting'
 		},
@@ -681,6 +701,7 @@ var conductor_query_builder = conductor_query_builder || {};
 			_.bindAll(
 				this,
 				'render',
+				'setHasUserChangedFeatureTypeFlag',
 				'previewQuery'
 			);
 		},
@@ -694,9 +715,29 @@ var conductor_query_builder = conductor_query_builder || {};
 			return this;
 		},
 		/**
+		 * This function sets the has user changed feature type flag.
+		 */
+		setHasUserChangedFeatureTypeFlag: function( event ) {
+			// Store the current feature type value
+			this.feature_type_value = $( event.currentTarget ).val();
+
+			// Bail if the has user changed feature type flag is set
+			if ( this.has_user_changed_feature_type ) {
+				return;
+			}
+
+			// Set the has user changed feature type flag based on the feature type focused flag
+			this.has_user_changed_feature_type = true;
+		},
+		/**
 		 * This function previews the query; delay 300ms between each preview.
 		 */
 		previewQuery: _.debounce( function() {
+			var $document = $( document );
+
+			// Trigger an event on the document
+			$document.trigger( 'conductor-query-builder-preview-query', [ this, $conductor_qb_preview ] );
+
 			// Bail if the shortcode UI is visible
 			if ( this.options.shortcode ) {
 				return;
@@ -745,17 +786,30 @@ var conductor_query_builder = conductor_query_builder || {};
 			/**
 			 * This function sets up AJAX data.
 			 */
-			setupAJAXData: function( ID, nonce, nonce_action ) {
+			setupAJAXData: function( ID, nonce, nonce_action, $form ) {
+				// Defaults
+				$form = $form || Conductor_Query_Builder_Wrapper_View.$el.find( ':input' );
+
 				var data = $.extend( {
 						ID: ID,
 						nonce: nonce,
 						nonce_action: nonce_action
 					}, this.data ),
-					$form = Conductor_Query_Builder_Wrapper_View.$el.find( ':input' ),
 					form_data = $form.serializeArray();
 
 				// Loop through form data
 				_.each( form_data, function ( the_data ) {
+					var $el = $( '[name="' + the_data.name + '"]' ),
+						type = $el.data( 'type' ),
+						multiple = $el.prop( 'multiple' ),
+						value = the_data.value;
+
+					// If this is a select element, a values select element, and it's a multiple select element
+					if ( $el[0].nodeName.toLowerCase() && type === 'values' && multiple ) {
+						// Set the value to the selected options data
+						value = $el.data( 'selected-options' );
+					}
+
 					// If this form data name already exists
 					if ( data[the_data.name] ) {
 						// If the form data isn't an array
@@ -764,13 +818,16 @@ var conductor_query_builder = conductor_query_builder || {};
 							data[the_data.name] = [data[the_data.name]];
 						}
 
-						// Push this data to the end of the array
-						data[the_data.name].push( the_data.value );
+						// If this value isn't already in the array
+						if ( data[the_data.name].indexOf( the_data.value ) === -1 ) {
+							// Push this data to the end of the array
+							data[the_data.name].push( the_data.value );
+						}
 					}
 					// Otherwise this form data name doesn't exist
 					else {
 						// Append this field to the data
-						data[the_data.name] = the_data.value;
+						data[the_data.name] = value;
 					}
 				} );
 
@@ -807,15 +864,40 @@ var conductor_query_builder = conductor_query_builder || {};
 	conductor_query_builder.Backbone.Views.Query_Builder = wp.Backbone.View.extend( {
 		el: '#conductor-qb-meta-box-query-builder-tab-content',
 		query_builder_mode_attr: 'data-query-builder-mode',
+		initial_feature_type: false,
+		has_user_changed_feature_type: false,
 		/**
 		 * This function runs on initialization of the view.
 		 */
 		initialize: function( options ) {
+			var self = this,
+				query_builder_mode = window.getUserSetting( conductor_query_builder.user.settings['query-builder'].mode.name ),
+				view,
+				$feature_type;
+
 			// Bind "this" to all functions
 			_.bindAll(
 				this,
 				'render'
 			);
+
+			// Delay 10ms; new thread
+			setTimeout( function() {
+				// Grab the correct view instance based on options
+				view = ( self.options.shortcode ) ? Conductor_Query_Builder_Shortcode_View : Conductor_Query_Builder_Wrapper_View;
+
+				// Grab the feature type element
+				$feature_type = view.$el.find( '.conductor-select-feature-type' );
+
+				// Store the initial feature type value on this object
+				self.initial_feature_type = $feature_type.val();
+
+				// If the new query builder mode is advanced and the current Conductor Widget feature type isn't set to "many"
+				if ( query_builder_mode === 'advanced' && $feature_type.val() !== 'true' ) {
+					// Set the Conductor Widget feature type to "many"
+					$feature_type.val( 'true' );
+				}
+			}, 10 );
 		},
 		/**
 		 * This function renders the view.
@@ -922,6 +1004,9 @@ var conductor_query_builder = conductor_query_builder || {};
 		 * This function toggles the query mode between simple and advanced
 		 */
 		toggleQueryBuilderMode: function( new_mode, previous_mode ) {
+			var view = ( this.options.shortcode ) ? Conductor_Query_Builder_Shortcode_View : Conductor_Query_Builder_Wrapper_View,
+				$feature_type = view.$el.find( '.conductor-select-feature-type' );
+
 			// Hide all previous query builder mode elements
 			this.$el.find( '[' + this.query_builder_mode_attr + '="' + previous_mode + '"]' ).addClass( 'hide hidden conductor-qb-hide conductor-qb-hidden' );
 
@@ -930,6 +1015,25 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// Set the CSS class on the content wrapper element
 			this.$el.parents( '.conductor-qb-query-builder-meta-box-tab-content-wrapper' ).toggleClass( 'conductor-qb-' + previous_mode + '-mode conductor-qb-' + new_mode + '-mode' );
+
+			// If the new query builder mode is advanced and the current Conductor Widget feature type isn't set to "many"
+			if ( new_mode === 'advanced' && $feature_type.val() !== 'true' ) {
+				// Set the Conductor Widget feature type to "many"
+				$feature_type.val( 'true' );
+			}
+			// Otherwise if the query builder mode is simple
+			else if ( new_mode === 'simple' ) {
+				// If the user changed the feature type value
+				if ( view.has_user_changed_feature_type ) {
+					// Set the feature type value to the user selected value
+					$feature_type.val( view.feature_type_value );
+				}
+				// Otherwise the user did not change the feature type value
+				else {
+					// Set the feature type value to "one"
+					$feature_type.val( '' );
+				}
+			}
 		},
 		/**
 		 * This function removes the loading state from the content wrapper.
@@ -1195,7 +1299,7 @@ var conductor_query_builder = conductor_query_builder || {};
 			// TODO
 		},
 		/**
-		 * This function toggles the query mode between simple and advanced
+		 * This function toggles the query mode between simple and advanced.
 		 */
 		// TODO: Currently this function is only setup to toggle between two types, expand it to allow for multiple types to be toggled
 		toggleQueryBuilderMode: function( event ) {
@@ -1453,7 +1557,7 @@ var conductor_query_builder = conductor_query_builder || {};
 			// Defaults
 			force_remove = force_remove || false;
 
-			var has_event = event && !_.isEmpty( event );
+			var has_event = event && ! _.isEmpty( event );
 
 			// Bail if this view should does not allow for removal
 			if ( ! this.options.flags.remove && ! force_remove ) {
@@ -1601,6 +1705,9 @@ var conductor_query_builder = conductor_query_builder || {};
 						$operators_select.prop( 'disabled', false );
 					}
 
+					// Re-initialize Select2 on the operators select element
+					sub_clause_group_view.initializeSelect2( [ 'operators' ] );
+
 					// If we have values
 					if ( columns && columns.values && values ) {
 						// Update the values select element
@@ -1744,15 +1851,15 @@ var conductor_query_builder = conductor_query_builder || {};
 			// Loop through all of the operator option elements
 			$operators_select_options.each( function() {
 				var $this = $( this ),
-					multiple = $this.data( 'multiple' ),
+					multiple = $this.prop( 'multiple' ),
 					value = $this.val();
 
 				// Set the disabled property (if this value isn't found in the list of operators)
 				$this.prop( 'disabled', ( operators.indexOf( value ) === -1 ) );
 			} );
 
-			// If the current selected value is disabled
-			if ( $operators_select_options.filter( '[value="' + operators_select_value + '"]' ).prop( 'disabled' ) ) {
+			// If we have a selected value and the current selected value is disabled
+			if ( operators_select_value && $operators_select_options.filter( '[value="' + operators_select_value + '"]' ).prop( 'disabled' ) ) {
 				// Select the first valid option
 				$operators_select.val( $operators_select_options.not( ':disabled' ).first().val() );
 
@@ -1873,13 +1980,88 @@ var conductor_query_builder = conductor_query_builder || {};
 		el_selector_suffix: '-sub-clause-groups',
 		select2_selector: '.conductor-qb-select2',
 		$select2: false,
+		shortcode_select2_re_init: false,
 		values: {},
 		template: wp.template( 'conductor-qb-meta-box-query-builder-sub-clause-group' ),
 		// Events
 		events: {
 			'click .conductor-qb-remove-action-button': 'removeSubClauseGroup', // Remove sub-clause group
 			'change .conductor-qb-select2': 'select2Change', // Select2 change
-			'select2:close .conductor-qb-select2': 'select2Close' // Select2 close
+			'select2:select .conductor-qb-select2': 'select2SelectUnselect', // Select2 select/un-select
+			'select2:unselect .conductor-qb-select2': 'select2SelectUnselect', // Select2 select/un-select
+			'select2:close .conductor-qb-select2': function( event ) {
+				var $this = $( event.currentTarget );
+
+				// Select2 close
+				this.select2Close( event );
+
+				// Update Select2 Options
+				this.updateSelect2Options( $this );
+			},
+			'keypress .select2-search__field' : function( event ) {
+				var $this = $( event.currentTarget ),
+					$select2_el = $this.parents( '.select2-container' ).prev( '.conductor-qb-select2' );
+
+				// Update Select2 Options
+				this.updateSelect2Options( $select2_el );
+			},
+			'keyup .select2-search__field' : function( event ) {
+				var $this = $( event.currentTarget ),
+					$select2_el = $this.parents( '.select2-container' ).prev( '.conductor-qb-select2' );
+
+				// Update Select2 Options
+				this.updateSelect2Options( $select2_el );
+			},
+			'change .select2-search__field' : function( event ) {
+				var $this = $( event.currentTarget ),
+					$select2_el = $this.parents( '.select2-container' ).prev( '.conductor-qb-select2' );
+
+				// Update Select2 Options
+				this.updateSelect2Options( $select2_el );
+			},
+			'input .select2-search__field' : function( event ) {
+				var $this = $( event.currentTarget ),
+					$select2_el = $this.parents( '.select2-container' ).prev( '.conductor-qb-select2' );
+
+				// Update Select2 Options
+				this.updateSelect2Options( $select2_el );
+			},
+			'select2:opening .conductor-qb-select2': function( event ) {
+				var self = this,
+					$this = $( event.currentTarget );
+
+				// Update Select2 Options
+				self.updateSelect2Options( $this );
+			},
+			'select2:open .conductor-qb-select2': function( event ) {
+				var self = this,
+					$this = $( event.currentTarget );
+
+				// Update Select2 Options
+				self.updateSelect2Options( $this );
+
+				// Delay 1ms; new thread
+				setTimeout( function() {
+					// Update Select2 Options
+					self.updateSelect2Options( $this );
+				}, 1 );
+			},
+			'select2:closing .conductor-qb-select2': function( event ) {
+				var self = this,
+					$this = $( event.currentTarget );
+
+				// Trigger a query for all elements
+				$this.data( 'select2' ).trigger( 'query', {} );
+
+				// Update Select2 Options
+				self.updateSelect2Options( $this );
+
+				// Delay 1ms; new thread
+				setTimeout( function() {
+					// Update Select2 Options
+					self.updateSelect2Options( $this );
+				}, 1 );
+			}
 		},
 		/**
 		 * This function runs on initialization of the view.
@@ -1891,6 +2073,7 @@ var conductor_query_builder = conductor_query_builder || {};
 				'render',
 				'removeSubClauseGroup',
 				'select2Change',
+				'select2SelectUnselect',
 				'select2Close',
 				'setMetaValue',
 				'getCurrentCount'
@@ -1978,7 +2161,9 @@ var conductor_query_builder = conductor_query_builder || {};
 					select_type = $this.data( 'select-type' ),
 					type = $this.data( 'type' ),
 					value = $this.val(),
-					meta = self.getMeta();
+					meta = self.getMeta(),
+					multiple = $this.prop( 'multiple' ),
+					selected_options = $this.data( 'selected-options' );
 
 				// Bail if we have types and this type was not found
 				if ( types.length && types.indexOf( type ) === -1 ) {
@@ -2046,7 +2231,6 @@ var conductor_query_builder = conductor_query_builder || {};
 											_.each( value, function ( meta_value ) {
 												// If this meta value doesn't exist
 												if ( ! $values_select_options.filter( '[value="' + meta_value + '"]' ).length ) {
-
 													// Create the data array if it doesn't exist
 													if ( ! select2_args.hasOwnProperty( 'data' ) ) {
 														select2_args.data = [];
@@ -2071,6 +2255,12 @@ var conductor_query_builder = conductor_query_builder || {};
 				if ( self.options.shortcode ) {
 					// Ensure Select2 elements are appended to the thickbox content element
 					select2_args.dropdownParent = $( '#TB_ajaxContent' )
+				}
+
+				// If this Select2 element is open
+				if ( Select2 && Select2.isOpen() ) {
+					// Close this Select2 element
+					$this.select2( 'close' );
 				}
 
 				// Initialize Select2
@@ -2107,7 +2297,7 @@ var conductor_query_builder = conductor_query_builder || {};
 						// If we have operators and an operators select element
 						if ( operators && operators.length && $operators_select.length ) {
 							// Update the operators select element
-							self.views.parent.updateOperatorsSelect( $operators_select, $operators_select_options, ( meta.operators && typeof meta.operators === 'string' ) ? meta.operators : meta.operators.slice( 0 ), operators, true );
+							self.views.parent.updateOperatorsSelect( $operators_select, $operators_select_options, ( meta.operators ) ? ( ( meta.operators && typeof meta.operators === 'string' ) ? meta.operators : meta.operators.slice( 0 ) ) : '', operators, true );
 						}
 					break;
 
@@ -2143,6 +2333,11 @@ var conductor_query_builder = conductor_query_builder || {};
 								// Grab the updated value
 								value = $this.val();
 							}
+						}
+
+						// If this values select element supports multiple values and we have selected options
+						if ( multiple && selected_options ) {
+							self.updateSelect2Options( $this );
 						}
 					break;
 				}
@@ -2477,6 +2672,49 @@ var conductor_query_builder = conductor_query_builder || {};
 			this.views.parent.select2Change( event, this );
 		},
 		/**
+		 * This function runs when a Select2 option is selected or unselected.
+		 */
+		select2SelectUnselect: function( event ) {
+			var $this = $( event.currentTarget ),
+				index = -1,
+				multiple = $this.prop( 'multiple' ),
+				selected_options = $this.data( 'selected-options' ) || [],
+				type = $this.data( 'type' ),
+				value = event.params.data.id;
+
+			// Bail if this isn't a values select element or this isn't a multiple select element
+			if ( type !== 'values' || ! multiple ) {
+				return;
+			}
+
+			// Switch based on event type
+			switch ( event.type ) {
+				// Select2 Select
+				case 'select2:select':
+					// Add the selected value to the selected data
+					selected_options.push( value );
+				break;
+
+				// Select2 Un-Select
+				case 'select2:unselect':
+					// Grab the index for the un-selected element
+					index = selected_options.indexOf( value );
+
+					// If we have a valid index
+					if ( index !== -1 ) {
+						// Splice (remove) the un-selected element from the selected data
+						selected_options.splice( index , 1 );
+					}
+				break;
+			}
+
+			// Set the selected data on the select element
+			$this.data( 'selected', selected_options ).attr( 'selected-options', JSON.stringify( selected_options ) );
+
+			// Loop through the selected values
+			this.updateSelect2Options( $this );
+		},
+		/**
 		 * This function is triggered when the Select2 dropdown closes.
 		 *
 		 * Re-initialize Select2 after the Select2 dropdown has closed
@@ -2491,15 +2729,42 @@ var conductor_query_builder = conductor_query_builder || {};
 		 * is closed, Select2 cannot remove the correct event handlers and scrolling
 		 * is prevented in elements with overflow scroll/auto.
 		 */
-		select2Close: function() {
-			// If the shortcode UI is visible
-			if ( this.options.shortcode ) {
-				// Initialize Select2 (delay 1ms; new thread)
-				( function ( self ) {
+		select2Close: function( event ) {
+			var $this = $( event.currentTarget );
+
+			// If the shortcode UI is visible and we're not already doing a shortcode Select2 re-initialization
+			if ( this.options.shortcode && ! this.shortcode_select2_re_init ) {
+				// Set the shortcode Select2 re-initialization flag
+				this.shortcode_select2_re_init = true;
+
+				// Delay 1ms; new thread
+				( function ( $current_select2_el, self ) {
 					setTimeout( function() {
+						var $conductor_qb_select2 = self.$el.find( self.select2_selector ).not( $current_select2_el ),
+							$open_conductor_qb_select2 = $conductor_qb_select2.filter( function() {
+								var $this = $( this ),
+									Select2 = $this.data( 'select2' ),
+									$select2_container = Select2.$container;
+
+								return $select2_container.hasClass( 'select2-container--open' );
+							} );
+
+						// Initialize Select2
 						self.initializeSelect2( ( ! self.views.parent.options.flags.re_init_values ) ? [ 'parameters', 'operators' ] : [] );
+
+						// If we have any open Select2 elements
+						if ( $open_conductor_qb_select2.length ) {
+							// Loop through the open Select2 elements
+							$open_conductor_qb_select2.each( function() {
+								// Open the Select2 element
+								$( this ).select2( 'open' );
+							} );
+						}
+
+						// Reset the shortcode Select2 re-initialization flag
+						self.shortcode_select2_re_init = false;
 					}, 1 )
-				} ( this ) );
+				} ( $this, this ) );
 			}
 		},
 		/**
@@ -2567,6 +2832,27 @@ var conductor_query_builder = conductor_query_builder || {};
 			count = ( zero_index && count !== 0 ) ? ( count - 1 ) : count;
 
 			return count;
+		},
+		/**
+		 * This function updates the displayed Select2 options to ensure the selection order is preserved.
+		 */
+		updateSelect2Options: function( $select2_el ) {
+			var Select2 = $select2_el.data( 'select2' ),
+				$select2_container = Select2.$container,
+				$select2_tags = $select2_container.find( '.select2-selection__choice' ),
+				$select2_search = $select2_container.find( '.select2-search' ),
+				selected_options = $select2_el.data( 'selected-options' );
+
+			// If we have selected options
+			if ( selected_options && selected_options.length ) {
+				// Loop through the selected values
+				_.each( selected_options, function( value ) {
+					// Move the tag the corresponds with this meta value
+					$select2_search.before( $select2_tags.filter( function() {
+						return $( this ).data( 'data' ).id === value.toString();
+					} ) );
+				} );
+			}
 		}
 	} );
 
@@ -2673,8 +2959,11 @@ var conductor_query_builder = conductor_query_builder || {};
 	 */
 	conductor_query_builder.Backbone.Views.Shortcode = wp.Backbone.View.extend( {
 		el: '#conductor-qb-shortcode-wrapper',
+		has_user_changed_feature_type: false,
+		feature_type_value: '',
 		// Events
 		events: {
+			'change .conductor-select-feature-type': 'setHasUserChangedFeatureTypeFlag',
 			'click .conductor-qb-shortcode-tabs .nav-tab': 'switchShortcodeActionButton',
 			'click .conductor-qb-shortcode-action-button': 'shortcodeActionButton',
 			'change #conductor-qb-shortcode-insert-query': 'setInsertQuery',
@@ -2691,6 +2980,7 @@ var conductor_query_builder = conductor_query_builder || {};
 			_.bindAll(
 				this,
 				'render',
+				'setHasUserChangedFeatureTypeFlag',
 				'switchShortcodeActionButton',
 				'shortcodeActionButton',
 				'setInsertQuery',
@@ -2718,6 +3008,21 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// Reset the create title value
 			this.$el.find( '#conductor-qb-shortcode-create-title' ).val( '' ).change();
+		},
+		/**
+		 * This function sets the has user changed feature type flag.
+		 */
+		setHasUserChangedFeatureTypeFlag: function( event ) {
+			// Store the current feature type value
+			this.feature_type_value = $( event.currentTarget ).val();
+
+			// Bail if the has user changed feature type flag is set
+			if ( this.has_user_changed_feature_type ) {
+				return;
+			}
+
+			// Set the has user changed feature type flag based on the feature type focused flag
+			this.has_user_changed_feature_type = true;
 		},
 		/**
 		 * This function adjusts the shortcode action button data.
@@ -2883,20 +3188,7 @@ var conductor_query_builder = conductor_query_builder || {};
 			 * This function sets up AJAX data.
 			 */
 			setupAJAXData: function( nonce, nonce_action ) {
-				var data = $.extend( {
-						nonce: nonce,
-						nonce_action: nonce_action
-					}, Conductor_Query_Builder_Wrapper_View.ajax.data ),
-					$form = Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-qb-shortcode-create-form' ),
-					form_data = $form.serializeArray();
-
-				// Loop through form data
-				_.each( form_data, function ( the_data ) {
-					// Append this field to the data
-					data[the_data.name] = the_data.value;
-				} );
-
-				return data;
+				return Conductor_Query_Builder_Wrapper_View.ajax.setupAJAXData( -1, nonce, nonce_action, Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-qb-shortcode-create-form' ) );
 			},
 			/**
 			 * This function runs on a successful AJAX request.
@@ -2938,6 +3230,57 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// TODO: Utilize fail l10n message
 			}
+		},
+		/**
+		 * This function determines if the simple query builder query arguments are empty.
+		 */
+		isSimpleQueryArgsEmpty: function() {
+			var $conductor_widget = this.$el.find( '.widget' ),
+				$conductor_section_general = $conductor_widget.find( '.conductor-section-general' ),
+				is_query_args_empty = true;
+
+			// Bail if we're not in the simple query builder mode
+			if ( window.getUserSetting( conductor_query_builder.user.settings['query-builder'].mode.name ) !== 'simple' ) {
+				return false;
+			}
+
+			// Loop through all input elements
+			$conductor_section_general.find( ':input' ).each( function() {
+				var $this = $( this ),
+					value = $this.val(),
+					$option;
+
+				// Bail if we don't have empty query arguments
+				if ( ! is_query_args_empty ) {
+					return;
+				}
+
+				// Switch based on element node name
+				switch ( this.nodeName.toLowerCase() ) {
+					// Input
+					case 'input':
+						// If the current value doesn't equal the default value
+						if ( value !== this.defaultValue ) {
+							// Set the query arguments flag to false
+							is_query_args_empty = false;
+						}
+					break;
+
+					// Select
+					case 'select':
+						// Grab the option for the current value
+						$option = $this.find( 'option[value="' + value + '"]' );
+
+						// If the current selected option isn't the default option
+						if ( ! $this.find( 'option[value="' + value + '"]' )[0].defaultSelected && $option.index() !== 0 ) {
+							// Set the query arguments flag to false
+							is_query_args_empty = false;
+						}
+					break;
+				}
+			} );
+
+			return is_query_args_empty;
 		}
 	} );
 
@@ -3099,11 +3442,16 @@ var conductor_query_builder = conductor_query_builder || {};
 	 * Document Ready
 	 */
 	$( function() {
-		var $body = $( 'body' ),
-			bodyMutationObserver,
-			$document = $( document ),
+		var bodyMutationObserver,
+			$form = $( '#post' ),
 			$tabs = $( '.conductor-qb-tabs a' ),
 			$add_shortcode = $( '.conductor-qb-add-shortcode' );
+
+		// Setup the document element
+		$document = $( document );
+
+		// Setup the body element
+		$body = $( 'body' );
 
 		// Setup the Conductor Query Builder preview element
 		$conductor_qb_preview = $( '#conductor-query-builder-preview' );
@@ -3265,7 +3613,7 @@ var conductor_query_builder = conductor_query_builder || {};
 								}
 
 								// If we have meta and the confirmation was cancelled
-								if ( ! Conductor_Query_Builder_Sub_Clause_Group_Collection.isMetaEmpty() && ! window.confirm( conductor_query_builder.l10n.shortcode.confirm ) ) {
+								if ( ( ! Conductor_Query_Builder_Sub_Clause_Group_Collection.isMetaEmpty() || ! Conductor_Query_Builder_Shortcode_View.isSimpleQueryArgsEmpty() ) && ! window.confirm( conductor_query_builder.l10n.shortcode.confirm ) ) {
 									// Stop propagation
 									event.stopImmediatePropagation();
 								}
@@ -3313,6 +3661,37 @@ var conductor_query_builder = conductor_query_builder || {};
 		// Observe
 		bodyMutationObserver.observe( $body[0], {
 			childList: true // Listen for elements added or removed to the body element
+		} );
+
+
+		/**
+		 * Post Form Submission
+		 */
+		$form.submit( function( event ) {
+			var $conductor_qb_select2 = $( '.conductor-qb-select2' );
+			// Loop through all Conductor Query Builder Select2 elements
+			$conductor_qb_select2.each( function() {
+				var $this = $( this ),
+					type = $this.data( 'type' ),
+					multiple = $this.prop( 'multiple' ),
+					selected_options = $this.data( 'selected-options' );
+
+				// Bail if this isn't a values select element, this isn't a multiple select element, or we don't have any selected options
+				if ( type !== 'values' || ! multiple || ! selected_options.length ) {
+					return;
+				}
+
+				// Loop through the selected values
+				_.each( selected_options.reverse(), function( value ) {
+					var $option = $this.find( 'option[value="' + value + '"]' );
+
+					// If we have an option for this value
+					if ( $option.length ) {
+						// Move this option to the top of the list
+						$this.prepend( $option );
+					}
+				} );
+			} );
 		} );
 	} );
 }( wp, jQuery ) );

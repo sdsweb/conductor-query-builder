@@ -104,8 +104,8 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin' ) ) {
 		 * the menu item capability to administrators only.
 		 */
 		public function admin_menu() {
-			// Grab the Conductor Admin Options menu page slug TODO: Remove fallback in a future version
-			$conductor_admin_options_menu_page = ( class_exists( 'Conductor_Admin_Options' ) && method_exists( 'Conductor_Admin_Options', 'get_menu_page' ) ) ? Conductor_Admin_Options::get_menu_page() : str_replace( 'toplevel_page_', '', Conductor_Admin_Options::$menu_page );
+			// Grab the Conductor Admin Options menu page slug
+			$conductor_admin_options_menu_page = ( class_exists( 'Conductor_Admin_Options' ) && method_exists( 'Conductor_Admin_Options', 'get_menu_page' ) ) ? Conductor_Admin_Options::get_menu_page() : ( ( class_exists( 'Conductor_Admin_Options' ) ) ? str_replace( 'toplevel_page_', '', Conductor_Admin_Options::$menu_page ) : 'conductor' );
 
 			// Grab the Conductor Query Builder instance
 			$conductor_query_builder = Conduct_Query_Builder();

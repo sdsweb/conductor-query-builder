@@ -108,7 +108,8 @@
 	width: 168px;
 }
 
-.conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select-select2-container .select2-selection {
+.conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select-select2-container .select2-selection,
+.conductor-shortcode-ui-visible .conductor-qb-query-builder-meta-box-tab-content-wrapper .conductor-qb-select-select2-container .select2-selection{
 	min-height: 30px;
 	border-color: #aaa;
 }
@@ -318,6 +319,34 @@
 }
 
 /**
+ * Yoast SEO adds styles to general Thickbox elements so we have to reset them.
+ */
+
+.conductor-shortcode-ui-visible #TB_window #TB_ajaxContent p {
+	margin: 1em 0;
+	padding: 0;
+}
+
+.conductor-shortcode-ui-visible #TB_window #TB_ajaxContent ul,
+.conductor-shortcode-ui-visible #TB_window #TB_ajaxContent li {
+	margin: 0;
+}
+
+.conductor-shortcode-ui-visible #TB_window #TB_ajaxContent li:before {
+	display: none;
+}
+
+.conductor-shortcode-ui-visible #TB_window #TB_ajaxContent .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+	padding: 0 5px;
+}
+
+.conductor-shortcode-ui-visible #TB_window #TB_ajaxContent .select2-container--default .select2-selection--multiple .select2-selection__choice {
+	margin-top: 5px;
+	margin-right: 5px;
+}
+
+
+/**
  * Clipboard
  */
 .conductor-qb-clipboard {
@@ -370,6 +399,13 @@
 	bottom: -8px;
 	z-index: 1000001;
 	pointer-events: none;
+}
+
+/**
+ * Functions
+ */
+.conductor-qb-function {
+	width: 88%;
 }
 
 

@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Widget
  * @author Slocum Studio
- * @version 1.0.0
+ * @version 1.0.3
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.0';
+		public $version = '1.0.3';
 
 		/**
 		 * @var array, Conductor Query Builder Widget defaults
@@ -58,14 +58,14 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 			// Widget/Control options
 			$widget_options = array(
 				'classname' => 'conductor-query-builder-widget',
-				'description' => __( 'Display a Conductor Query.', 'conductor-qb' )
+				'description' => __( 'Display a Conductor Query.', 'conductor-query-builder' )
 			);
 			$widget_options = apply_filters( 'conductor_query_builder_widget_widget_options', $widget_options, $this );
 
 			$control_options = apply_filters( 'conductor_query_builder_widget_control_options', array( 'id_base' => 'conductor-query-builder-widget' ), $this );
 
 			// Call the parent constructor
-			parent::__construct( 'conductor-query-builder-widget', __( 'Conductor Query Widget', 'conductor-qb' ), $widget_options, $control_options );
+			parent::__construct( 'conductor-query-builder-widget', __( 'Conductor Query Widget', 'conductor-query-builder' ), $widget_options, $control_options );
 		}
 
 		/**
@@ -94,7 +94,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 				<?php do_action( 'conductor_query_builder_widget_settings_title_before', $instance, $this ); ?>
 
 				<?php // Widget Title ?>
-				<label for="<?php echo $this->get_field_id( 'title' ) ; ?>"><strong><?php _e( 'Title', 'conductor-qb' ); ?></strong></label>
+				<label for="<?php echo $this->get_field_id( 'title' ) ; ?>"><strong><?php _e( 'Title', 'conductor-query-builder' ); ?></strong></label>
 				<br />
 				<input type="text" class="conductor-query-builder-input conductor-input" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 
@@ -124,7 +124,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 					// Display queries
 					if ( ! empty( $queries ) ) :
 					?>
-						<label for="<?php echo $this->get_field_id( 'post_id' ); ?>"><strong><?php _e( 'Select a Query', 'conductor-qb' ); ?></strong></label>
+						<label for="<?php echo $this->get_field_id( 'post_id' ); ?>"><strong><?php _e( 'Select a Query', 'conductor-query-builder' ); ?></strong></label>
 						<br />
 						<select class="conductor-query-builder-select conductor-select" id="<?php echo $this->get_field_id( 'post_id' ); ?>" name="<?php echo $this->get_field_name( 'post_id' ); ?>">
 							<option value=""><?php _e( '&mdash; Select &mdash;', 'conductor' ); ?></option>
@@ -136,7 +136,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 										// Grab the post title
 										$post_title = get_the_title( $post );
 								?>
-									<option value="<?php echo esc_attr( $post_id ); ?>" <?php selected( ( $instance['post_id'] === $post_id ) ); ?>><?php echo ( empty( $post_title ) ) ? sprintf( __( '#%d (no title)', 'conductor-qb' ), $post_id ) : $post_title; ?></option>
+									<option value="<?php echo esc_attr( $post_id ); ?>" <?php selected( ( $instance['post_id'] === $post_id ) ); ?>><?php echo ( empty( $post_title ) ) ? sprintf( __( '#%d (no title)', 'conductor-query-builder' ), $post_id ) : $post_title; ?></option>
 								<?php
 									endforeach;
 								?>
@@ -153,7 +153,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 			<div class="clear"></div>
 
 			<p class="conductor-query-builder-widget-slug conductor-widget-slug">
-				<?php printf( __( 'Content management brought to you by <a href="%1$s" target="_blank">Conductor</a>','conductor-qb' ), esc_url( 'https://conductorplugin.com/?utm_source=conductor-query-builder&utm_medium=link&utm_content=conductor-query-builder-widget-branding&utm_campaign=conductor' ) ); ?>
+				<?php printf( __( 'Content management brought to you by <a href="%1$s" target="_blank">Conductor</a>','conductor-query-builder' ), esc_url( 'https://conductorplugin.com/?utm_source=conductor-query-builder&utm_medium=link&utm_content=conductor-query-builder-widget-branding&utm_campaign=conductor' ) ); ?>
 			</p>
 		<?php
 		}

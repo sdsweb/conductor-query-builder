@@ -7,6 +7,10 @@
  * @var $conductor_query_builder Conductor_Query_Builder
  * @var $conductor_widget_instance array
  * @var $conductor_widget Conductor_Widget
+ * @var $field_brackets array
+ * @var $left_field_bracket string
+ * @var $right_field_bracket string
+ * @var $meta_key_prefix string
  */
 ?>
 
@@ -27,7 +31,7 @@
 		// If we should render this column
 		if ( data.columns.parameters || data.meta.parameters ) {
 	#>
-			<select class="conductor-qb-select conductor-qb-select2 conductor-qb-parameters-select conductor-qb-{{ data.type }}-select conductor-qb-{{ data.type }}-parameters-select" name="conductor_query_builder[{{ data.type }}][{{ data.parent.count }}][{{ data.count }}][parameters]<# if ( data.columns.parameters.select2 && data.columns.parameters.select2.multiple ) { #>[]<# } #>"<# if ( data.columns.parameters.select2 && data.columns.parameters.select2.multiple ) { #> multiple="multiple" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2.placeholder ) { #> data-placeholder="{{ data.columns.parameters.select2.placeholder }}" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2.tags ) { #> data-tags="true" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2['toggle-action-buttons'] ) { #> data-toggle-action-buttons="true" <# } #> data-select-type="{{ data.type }}" data-type="parameters">
+			<select class="conductor-qb-select conductor-qb-select2 conductor-qb-parameters-select conductor-qb-{{ data.type }}-select conductor-qb-{{ data.type }}-parameters-select" name="<?php echo $meta_key_prefix; ?><?php echo $left_field_bracket; ?>{{ data.type }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>{{ data.parent.count }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>{{ data.count }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>parameters<?php echo $right_field_bracket; ?><# if ( data.columns.parameters.select2 && data.columns.parameters.select2.multiple ) { #>[]<# } #>"<# if ( data.columns.parameters.select2 && data.columns.parameters.select2.multiple ) { #> multiple="multiple" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2.placeholder ) { #> data-placeholder="{{ data.columns.parameters.select2.placeholder }}" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2.tags ) { #> data-tags="true" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2['toggle-action-buttons'] ) { #> data-toggle-action-buttons="true" <# } #> data-select-type="{{ data.type }}" data-type="parameters">
 				<option value=""></option>
 				<#
 					// Loop through the parameters
@@ -64,7 +68,7 @@
 		// If we should render this column
 		if ( data.columns.operators || data.meta.operators ) {
 	#>
-			<select class="conductor-qb-select conductor-qb-select2 conductor-qb-operators-select conductor-qb-{{ data.type }}-select conductor-qb-{{ data.type }}-operators-select" name="conductor_query_builder[{{ data.type }}][{{ data.parent.count }}][{{ data.count }}][operators]<# if ( data.columns.operators.select2 && data.columns.operators.select2.multiple ) { #>[]<# } #>" <# if ( data.columns.operators.select2 && data.columns.operators.select2.multiple ) { #> multiple="multiple" <# } #> <# if ( data.columns.operators.select2 && data.columns.operators.select2.placeholder ) { #> data-placeholder="{{ data.columns.operators.select2.placeholder }}" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2.tags ) { #> data-tags="true" <# } #> data-select-type="{{ data.type }}" data-type="operators" <# if ( ! data.meta.operators ) {#> disabled="disabled" <# } #>>
+			<select class="conductor-qb-select conductor-qb-select2 conductor-qb-operators-select conductor-qb-{{ data.type }}-select conductor-qb-{{ data.type }}-operators-select" name="<?php echo $meta_key_prefix; ?><?php echo $left_field_bracket; ?>{{ data.type }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>{{ data.parent.count }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>{{ data.count }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>operators<?php echo $right_field_bracket; ?><# if ( data.columns.operators.select2 && data.columns.operators.select2.multiple ) { #>[]<# } #>" <# if ( data.columns.operators.select2 && data.columns.operators.select2.multiple ) { #> multiple="multiple" <# } #> <# if ( data.columns.operators.select2 && data.columns.operators.select2.placeholder ) { #> data-placeholder="{{ data.columns.operators.select2.placeholder }}" <# } #> <# if ( data.columns.parameters.select2 && data.columns.parameters.select2.tags ) { #> data-tags="true" <# } #> data-select-type="{{ data.type }}" data-type="operators" <# if ( ! data.meta.operators ) {#> disabled="disabled" <# } #>>
 				<option value=""></option>
 				<#
 					// Loop through the operators
@@ -101,7 +105,7 @@
 		// If we should render this column
 		if ( data.columns.values ) {
 	#>
-			<select class="conductor-qb-select conductor-qb-select2 conductor-qb-values-select conductor-qb-{{ data.type }}-select conductor-qb-{{ data.type }}-values-select" name="conductor_query_builder[{{ data.type }}][{{ data.parent.count }}][{{ data.count }}][values]<# if ( data.columns.values.select2 && data.columns.values.select2.multiple ) { #>[]<# } #>"<# if ( data.columns.values.select2 && data.columns.values.select2.multiple ) { #> multiple="multiple" <# } #> <# if ( data.columns.values.select2 && data.columns.values.select2.placeholder ) { #> data-placeholder="{{ data.columns.values.select2.placeholder }}" <# } #> <# if ( data.columns.values.select2 && data.columns.values.select2.tags ) { #> data-tags="true" <# } #> <# if ( data.columns.values.select2 && data.columns.values.select2['toggle-action-buttons'] ) { #> data-toggle-action-buttons="true" <# } #> data-select-type="{{ data.type }}" data-type="values" <# if ( ! data.meta.values ) {#> disabled="disabled" <# } #>>
+			<select class="conductor-qb-select conductor-qb-select2 conductor-qb-values-select conductor-qb-{{ data.type }}-select conductor-qb-{{ data.type }}-values-select" name="<?php echo $meta_key_prefix; ?><?php echo $left_field_bracket; ?>{{ data.type }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>{{ data.parent.count }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>{{ data.count }}<?php echo $right_field_bracket; ?><?php echo $left_field_bracket; ?>values<?php echo $right_field_bracket; ?><# if ( data.columns.values.select2 && data.columns.values.select2.multiple ) { #>[]<# } #>"<# if ( data.columns.values.select2 && data.columns.values.select2.multiple ) { #> multiple="multiple" <# } #> <# if ( data.columns.values.select2 && data.columns.values.select2.placeholder ) { #> data-placeholder="{{ data.columns.values.select2.placeholder }}" <# } #> <# if ( data.columns.values.select2 && data.columns.values.select2.tags ) { #> data-tags="true" <# } #> <# if ( data.columns.values.select2 && data.columns.values.select2['toggle-action-buttons'] ) { #> data-toggle-action-buttons="true" <# } #> data-select-type="{{ data.type }}" data-type="values" <# if ( ! data.meta.values ) {#> disabled="disabled" <# } #> data-selected-options="{{ ( typeof data.meta.values === 'string' ) ? data.meta.values : JSON.stringify( ( data.meta.values && data.meta.values.length ) ? data.meta.values.map( String ) : [] ) }}">
 				<option value=""></option>
 				<#
 					// Loop through the values
@@ -135,7 +139,7 @@
 		// If this isn't the default view
 		if ( ! data.flags.default ) {
 	#>
-		<button class="button button-secondary conductor-qb-button conductor-qb-action-button conductor-qb-remove-action-button conductor-qb-remove-sub-clause-group-button conductor-qb-remove-{{ data.type }}-sub-clause-group-button" data-action-button-id="conductor-qb-add-{{ data.type }}-clause-group-button" title=<?php esc_attr_e( 'Remove Sub-Clause Group', 'conductor-qb' ); ?>><span class="dashicons dashicons-minus"></span></button>
+		<button class="button button-secondary conductor-qb-button conductor-qb-action-button conductor-qb-remove-action-button conductor-qb-remove-sub-clause-group-button conductor-qb-remove-{{ data.type }}-sub-clause-group-button" data-action-button-id="conductor-qb-add-{{ data.type }}-clause-group-button" title=<?php esc_attr_e( 'Remove Sub-Clause Group', 'conductor-query-builder' ); ?>><span class="dashicons dashicons-minus"></span></button>
 	<#
 		}
 	#>
@@ -144,7 +148,7 @@
 		// If this view allows for sub-clause groups
 		if ( data.flags.sub_clause_groups ) {
 	#>
-		<button class="button button-secondary conductor-qb-button conductor-qb-action-button conductor-qb-add-action-button conductor-qb-add-sub-clause-group-button conductor-qb-add-{{ data.type }}-sub-clause-group-button" title="<?php esc_attr_e( 'Add Sub-Clause Group', 'conductor-qb' ); ?>"><span class="dashicons dashicons-plus"></span></button>
+		<button class="button button-secondary conductor-qb-button conductor-qb-action-button conductor-qb-add-action-button conductor-qb-add-sub-clause-group-button conductor-qb-add-{{ data.type }}-sub-clause-group-button" title="<?php esc_attr_e( 'Add Sub-Clause Group', 'conductor-query-builder' ); ?>"><span class="dashicons dashicons-plus"></span></button>
 	<#
 		}
 	#>

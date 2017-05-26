@@ -39,7 +39,7 @@
 	<div id="conductor-qb-meta-box-query-builder-simple" class="conductor-qb-meta-box-query-builder-mode conductor-qb-meta-box-query-builder-simple conductor-qb-cf <?php echo esc_attr( ( $conductor_query_builder->get_query_builder_mode() !== 'simple' ) ? 'hide hidden conductor-qb-hide conductor-qb-hidden' : false ); ?>" data-query-builder-mode="simple">
 		<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_simple_title_before', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 
-		<h3 id="conductor-qb-meta-box-query-builder-simple-title" class="conductor-qb-meta-box-query-builder-mode-title conductor-qb-meta-box-query-builder-simple-title"><?php _e( 'Simple Query Builder', 'conductor-qb' ); ?></h3>
+		<h3 id="conductor-qb-meta-box-query-builder-simple-title" class="conductor-qb-meta-box-query-builder-mode-title conductor-qb-meta-box-query-builder-simple-title"><?php _e( 'Simple Query Builder', 'conductor-query-builder' ); ?></h3>
 
 		<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_simple_title_after', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 
@@ -69,7 +69,7 @@
 	<div id="conductor-qb-meta-box-query-builder-advanced" class="conductor-qb-meta-box-query-builder-mode conductor-qb-meta-box-query-builder-advanced conductor-qb-cf <?php echo ( $conductor_query_builder->get_query_builder_mode() !== 'advanced' ) ? 'hide hidden conductor-qb-hide conductor-qb-hidden' : false; ?>" data-query-builder-mode="advanced">
 		<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_advanced_title_before', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 
-		<h3 id="conductor-qb-meta-box-query-builder-advanced-title" class="conductor-qb-meta-box-query-builder-mode-title conductor-qb-meta-box-query-builder-advanced-title"><?php _e( 'Advanced Query Builder', 'conductor-qb' ); ?></h3>
+		<h3 id="conductor-qb-meta-box-query-builder-advanced-title" class="conductor-qb-meta-box-query-builder-mode-title conductor-qb-meta-box-query-builder-advanced-title"><?php _e( 'Advanced Query Builder', 'conductor-query-builder' ); ?></h3>
 
 		<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_advanced_title_before', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 

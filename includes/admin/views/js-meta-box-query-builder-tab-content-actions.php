@@ -40,7 +40,7 @@
 		// If this isn't a clause group
 		if ( ! data.flags.clause_group ) {
 	#>
-		<button class="button button-primary conductor-qb-button conductor-qb-button-right conductor-qb-toggle-mode-button" data-simple-label="<?php esc_attr_e( 'Switch to Builder', 'conductor-qb' ); ?>" data-advanced-label="<?php esc_attr_e( 'Switch to Simple', 'conductor-qb' ); ?>"><?php echo ( $conductor_query_builder->get_query_builder_mode() !== 'advanced' ) ? __( 'Switch to Builder', 'conductor-qb' ) : __( 'Switch to Simple', 'conductor-qb' ); ?></button>
+		<button class="button button-primary conductor-qb-button conductor-qb-button-right conductor-qb-toggle-mode-button" data-simple-label="<?php esc_attr_e( 'Switch to Builder', 'conductor-query-builder' ); ?>" data-advanced-label="<?php esc_attr_e( 'Switch to Simple', 'conductor-query-builder' ); ?>"><?php echo ( $conductor_query_builder->get_query_builder_mode() !== 'advanced' ) ? __( 'Switch to Builder', 'conductor-query-builder' ) : __( 'Switch to Simple', 'conductor-query-builder' ); ?></button>
 	<#
 		}
 	#>

@@ -7,13 +7,14 @@
  * @var $conductor_query_builder Conductor_Query_Builder
  * @var $conductor_widget_instance array
  * @var $conductor_widget Conductor_Widget
+ * @var $form_element string
  */
 
 ?>
 <div id="conductor-qb-shortcode-output-tab-content" class="conductor-qb-tab conductor-qb-shortcode-output-tab-content" data-type="conductor-qb-shortcode">
 	<?php do_action( 'conductor_query_builder_shortcode_create_tab_before', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 
-	<form id="conductor-qb-shortcode-create-form" class="conductor-qb-form conductor-qb-shortcode-create-form">
+	<<?php echo $form_element; ?> id="conductor-qb-shortcode-create-form" class="conductor-qb-form conductor-qb-shortcode-create-form">
 		<?php
 			/**
 			 * Title
@@ -33,9 +34,9 @@
 			 */
 
 			// Output the Conductor Query Builder Meta box
-			$conductor_query_builder->meta_box_query_builder( $post );
+			$conductor_query_builder->meta_box_query_builder( $post, array(), $conductor_widget_instance );
 		?>
-	</form>
+	</<?php echo $form_element; ?>>
 
 	<?php do_action( 'conductor_query_builder_shortcode_create_tab_after', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 </div>

@@ -157,6 +157,7 @@
 
 		<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_advanced_limit_after', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 	</div>
+
 	<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_advanced_after', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 
 	<?php do_action( 'conductor_query_builder_meta_box_query_builder_tab_after', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>

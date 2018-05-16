@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Beaver_Builder_Module
  * @author Slocum Studio
- * @version 1.0.3
+ * @version 1.0.4
  * @since 1.0.3
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder_Module' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.3';
+		public $version = '1.0.4';
 
 		/**
 		 * @var Conductor, Instance of the class
@@ -104,7 +104,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder_Module' ) ) {
 						default:
 							// If the left field bracket exists in the key
 							if ( strpos( $key, $conductor_query_builder_beaver_builder->left_field_bracket ) !== false ) {
-								// Explode the key into parts
+								// Explode the key into parts (based on the left field bracket)
 								$key_parts = explode( $conductor_query_builder_beaver_builder->left_field_bracket, $key );
 
 								// If we have 5 key parts
@@ -154,6 +154,9 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder_Module' ) ) {
 					// Encode the output setting value (Conductor Widget sanitizing requires output to be a JSON encoded string)
 					$value['output'] = wp_json_encode( $value['output'] );
 
+					// Filter the value
+					$value = apply_filters( 'conductor_query_builder_beaver_builder_update_conductor_widget_settings', $value, $settings, $conductor_widget_key, $conductor_query_builder_beaver_builder, $conductor_query_builder, $conductor_widget, $this );
+
 					// Wrap the value in an array
 					$value = array( $value );
 				}
@@ -174,7 +177,6 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder_Module' ) ) {
 
 			// Grab the Conductor Query Builder data (default to an empty array)
 			$conductor_query_builder_data = $conductor_query_builder->get_query_builder_data( $settings_arr, $query_builder_mode );
-
 
 			/*
 			 * Bail if:

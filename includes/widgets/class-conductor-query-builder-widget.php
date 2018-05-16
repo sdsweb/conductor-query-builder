@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Widget
  * @author Slocum Studio
- * @version 1.0.3
+ * @version 1.0.4
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.3';
+		public $version = '1.0.4';
 
 		/**
 		 * @var array, Conductor Query Builder Widget defaults
@@ -92,6 +92,8 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 
 			<div class="conductor-query-builder-widget-setting conductor-query-builder-widget-title conductor-widget-setting">
 				<?php do_action( 'conductor_query_builder_widget_settings_title_before', $instance, $this ); ?>
+
+				<?php // TODO: Add ability to hide title like Conductor Widget ?>
 
 				<?php // Widget Title ?>
 				<label for="<?php echo $this->get_field_id( 'title' ) ; ?>"><strong><?php _e( 'Title', 'conductor-query-builder' ); ?></strong></label>
@@ -189,7 +191,10 @@ if ( ! class_exists( 'Conductor_Query_Builder_Widget' ) ) {
 			// If we have a post ID
 			if ( isset( $instance['post_id'] ) && ! empty( $instance['post_id'] ) )
 				// Render this Conductor Query
-				$conductor_query_builder->render( $instance['post_id'], ( isset( $instance['title'] ) ) ? $instance['title'] : '' );
+				$conductor_query_builder->render( $instance['post_id'], ( isset( $instance['title'] ) ) ? $instance['title'] : '', array(
+					'type' => 'widget',
+					'widget' => $this
+				) );
 
 			do_action( 'conductor_query_builder_widget_after', $instance, $args, $conductor_query_builder, $this );
 

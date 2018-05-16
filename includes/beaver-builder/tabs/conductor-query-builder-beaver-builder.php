@@ -5,16 +5,16 @@
  * We're "faking" the Thickbox HTML markup/window here due to our shortcode logic.
  *
  * @author Slocum Studio
- * @version 1.0.0
+ * @version 1.0.4
  * @since 1.0.0
  *
- *
  * @var $form array
+ * @var $tabs array
  * @var $settings object
  */
 
 // Grab the section
-$section = $form['tabs']['conductor-query-builder'];
+$section = ( isset( $form ) && is_array( $form ) && isset( $form['tabs'] ) ) ? $form['tabs']['conductor-query-builder'] : $tabs['conductor-query-builder'];
 
 // Grab the Conductor Query Builder instance
 $conductor_query_builder = Conduct_Query_Builder();
@@ -34,7 +34,7 @@ $conductor_query_builder_conductor_widget_key = $conductor_query_builder->meta_k
 
 <div id="TB_window" class="conductor-qb-TB_window">
 	<div id="TB_ajaxContent" class="conductor-qb-TB_ajaxContent">
-		<?php if(!empty($section['title'])) : // Section Title ?>
+		<?php if ( ! empty( $section['title'] ) ) : // Section Title ?>
 			<h3 class="fl-builder-settings-title"><?php echo $section['title']; ?></h3>
 		<?php endif; ?>
 
@@ -60,14 +60,5 @@ $conductor_query_builder_conductor_widget_key = $conductor_query_builder->meta_k
 		<input id="conductor-query-builder-beaver-builder-title" class="conductor-query-builder-beaver-builder-input conductor-query-builder-beaver-builder-title" name="conductor_query_builder_beaver_builder_title" type="hidden" value="<?php echo ( property_exists( $settings, $conductor_query_builder_title_key ) ) ? esc_attr( $settings->{$conductor_query_builder_title_key} ) : false; ?>" />
 
 		<input id="conductor-query-builder-beaver-builder-conductor-widget" class="conductor-query-builder-beaver-builder-input conductor-query-builder-beaver-builder-conductor-widget" name="conductor_query_builder_beaver_builder_conductor_widget" type="hidden" value="<?php echo esc_attr( wp_json_encode( ( property_exists( $settings, $conductor_query_builder_conductor_widget_key ) ) ? $settings->{$conductor_query_builder_conductor_widget_key} : array() ) ); ?>" />
-
-		<table class="fl-form-table">
-			<?php
-				// Loop through fields within this section
-				foreach ( $section['fields'] as $name => $field )
-					// Render this settings field
-					FLBuilder::render_settings_field( $name, $field, $settings );
-			?>
-		</table>
 	</div>
 </div>

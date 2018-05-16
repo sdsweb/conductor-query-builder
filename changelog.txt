@@ -2,9 +2,32 @@
 Plugin: Conductor Query Builder Add-On
 Author: Slocum Themes/Slocum Design Studio
 Author URI: https://conductorplugin.com/
-Current Version: 1.0.3
+Current Version: 1.0.4
 ==========================================
 
+
+1.0.4 // May 02 2018
+--------------------
+- Adjusted logic to reset query builder settings to default values (use the "data-default-value" and "data-default"
+  HTML attribute values instead of Conductor Widget defaults)
+- Fixed a bug where FROM query argument action buttons were hidden in the shortcode query builder in some cases
+- Fixed possible PHP notices that occurred when clause group data was expected to be an array but it was actually a string
+- Fixed a possible fatal PHP error due to the removal of all widgets by Yoast SEO
+- Adjusted logic to display "Edit Query" buttons for query builder front-end displays
+- Added logic to interact with the Conductor REST API (adjust query arguments, widget IDs, etc...)
+- Adjusted logic to determine if meta in memory (browser session) is empty
+- Added logic to preview the current query on the "keyup" event on query builder input elements
+- Added logic to utilize the "conductor-query-builder-skip-preview" attribute when attempting to preview a query
+- Added logic to skip previewing a query if the shortcode query builder was active
+- Adjusted _.debounce() timeout for previewing queries (changed from 300ms to 400ms)
+- Added logic to abort the current query builder preview AJAX request when attempting a new preview of a query
+- Added logic to remove the clause action buttons view from memory if it existed when removing the clause group view
+- Added "conductor_query_builder_save_post_before" and "conductor_query_builder_save_post_after" actions
+- Added "conductor_query_builder_preview_query_before" and "conductor_query_builder_preview_query_after" actions
+- Added logic to determine the maximum number of pages (for pagination) on query builder queries
+- Adjusted logic to convert simple query builder data to a single array to account for multidimensional array settings
+- Adjusted Beaver Builder logic to account for Beaver Builder 2.0+
+- Adjusted query builder "copy to clipboard" tooltip CSS
 
 1.0.3 // May 22 2017
 --------------------

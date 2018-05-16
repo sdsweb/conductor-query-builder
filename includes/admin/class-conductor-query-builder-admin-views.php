@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Admin_Views
  * @author Slocum Studio
- * @version 1.0.3
+ * @version 1.0.4
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.3';
+		public $version = '1.0.4';
 
 		/**
 		 * @var array
@@ -78,7 +78,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin_Views' ) ) {
 			self::meta_box_query_builder_tab_content_sub_clause_group( $post, $post_meta, $conductor_query_builder, $conductor_widget_instance, $conductor_widget );
 
 			// If we're on a page that supports the Conductor Query Builder
-			if ( apply_filters( 'conductor_query_builder_admin_footer', $the_hook_suffix && in_array( $the_hook_suffix, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $the_hook_suffix, $hook_suffix, $post, $conductor_query_builder, $conductor_widget, $this ) ) {
+			if ( apply_filters( 'conductor_query_builder_admin_footer', get_post_type( $post ) !== $conductor_query_builder->post_type_name && $the_hook_suffix && in_array( $the_hook_suffix, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $the_hook_suffix, $hook_suffix, $post, $conductor_query_builder, $conductor_widget, $this ) ) {
 				// Shortcode query builder template
 				$conductor_query_builder->shortcode_query_builder();
 

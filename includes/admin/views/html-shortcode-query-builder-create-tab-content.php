@@ -26,7 +26,7 @@
 			<?php do_action( 'conductor_query_builder_shortcode_create_tab_title', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 		</div>
 
-		<?php do_action( 'conductor_query_builder_shortcode_create_tab_title_before', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
+		<?php do_action( 'conductor_query_builder_shortcode_create_tab_title_after', $post, $post_meta, $conductor_widget_instance, $conductor_widget, $conductor_query_builder ); ?>
 
 		<?php
 			/**

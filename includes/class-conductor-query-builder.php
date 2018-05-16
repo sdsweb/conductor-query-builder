@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder
  * @author Slocum Studio
- * @version 1.0.3
+ * @version 1.0.4
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.3';
+		public $version = '1.0.4';
 
 		/**
 		 * @var string
@@ -125,6 +125,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		public $the_widget_number = -1;
 
 		/**
+		 * @var string, Temporary Query Builder sidebar ID
+		 */
+		public $temporary_sidebar_id = 'conductor-qb-temporary-sidebar';
+
+		/**
 		 * @var WP_Post, Reference to the global $post object
 		 */
 		public $global_post = null;
@@ -178,6 +183,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Hooks
 			add_action( 'init', array( $this, 'init' ), 9999 ); // Init (Late)
+			add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) ); // WordPress Enqueue Scripts
 			add_filter( 'sidebars_widgets', array( $this, 'sidebars_widgets' ) ); // Sidebars Widgets
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 0 ); // Admin Enqueue Scripts (Very Early)
 			add_action( 'media_buttons', array( $this, 'media_buttons' ) ); // Media Buttons
@@ -219,13 +225,18 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			global $wpdb, $post, $pagenow;
 
 			// Grab the post types
+			// TODO: Future: Hook into filter in add-ons to add post types (possibly call Conductor Widget post types filter name instead)
 			$post_types = $this->get_post_types();
 
-			// Grab the Conductor Query Builder Widget instance
-			$conductor_qb_widget = Conduct_Query_Builder_Widget();
+			// If the Conductor Query Builder Widget exists
+			if ( function_exists( 'Conduct_Query_Builder_Widget' ) ) {
+				// Grab the Conductor Query Builder Widget instance
+				$conductor_qb_widget = Conduct_Query_Builder_Widget();
 
-			// Set the Conductor Query Builder Widget active flag
-			$this->is_active_widget = is_active_widget( false, false, $conductor_qb_widget->id_base );
+				// Set the Conductor Query Builder Widget active flag
+				$this->is_active_widget = is_active_widget( false, false, $conductor_qb_widget->id_base );
+			}
+
 
 			/*
 			 * Operators
@@ -308,9 +319,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				)
 			), $this );
 
+
 			/*
 			 * Query Argument Operators
 			 */
+			// TODO: Future: Depreciate; move this mapping of operators to $this->operators inside of an "operator" parameter
 			$this->query_args_operators = apply_filters( 'conductor_query_builder_query_args_operators', array(
 				// Equals
 				'IS' => '=',
@@ -352,13 +365,14 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				'NOT BETWEEN' => 'NOT BETWEEN'
 			) );
 
+
 			/*
 			 * Parameters
 			 *
 			 * This section contains the parameters configuration data for each clause and parameter.
 			 *
 			 * Note: The array values must match an operator KEY present in the list above - the query
-			 * argument operators.
+			 * argument operators. TODO: Future: Depreciate this requirement, see TODO above
 			 *
 			 * Parameters are specified via array keys. Parameters can be specified in any of the
 			 * following formats:
@@ -414,6 +428,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 *
 			 * Note: If the 'types' parameter is not specified, all data is sanitized via sanitize_text_field().
 			 */
+			// TODO: Future: Group these by query type (i.e. WP_Query or similar)?
+			// TODO: Future: Comment all relevant properties below
 			$this->parameters = apply_filters( 'conductor_query_builder_parameters', array(
 				// WHERE
 				'author' => array(
@@ -506,8 +522,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				'meta_query' => array(
 					// Fields
 					'fields' => array(
-						// Field type/name
+						// Compare (field type/name)
 						'compare' => array(
+							// Operators
 							'operators' => array(
 								'IS',
 								'NOT',
@@ -524,19 +541,21 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								'BETWEEN',
 								'NOT BETWEEN'
 							),
+							// Multiple operators (operators that allow for multiple values to be selected)
 							'multiple' => array(
 								'IN',
 								'NOT IN',
 								'BETWEEN',
 								'NOT BETWEEN'
 							),
+							// Unique operators (operators that allow for values to be chosen once)
 							'unique' => array(
 								'IN',
 								'NOT IN',
 								'BETWEEN',
 								'NOT BETWEEN'
 							)
-						),
+						)
 					)
 				),
 
@@ -1517,13 +1536,40 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		}
 
 		/**
+		 * This function enqueues scripts and styles on the front-end.
+		 */
+		public function wp_enqueue_scripts() {
+			// If the Conductor Query Builder Widget exists
+			if ( function_exists( 'Conduct_Query_Builder_Widget' ) ) {
+				// Grab the Conductor Query Builder Widget instance
+				$conductor_query_builder_widget = Conduct_Query_Builder_Widget();
+
+				// If at least one Conductor Query Builder Widget is active
+				if ( is_active_widget( false, false, $conductor_query_builder_widget->id_base ) ) {
+					// Conductor Query Builder Widget Script
+					wp_enqueue_script( 'conductor-query-builder-widget', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/conductor-query-builder-widget.js', array( 'conductor-widget' ), Conductor_Query_Builder_Add_On::$version, true );
+					wp_localize_script( 'conductor-query-builder-widget', 'conductor_query_builder', apply_filters( 'conductor_query_builder_widget_localize', array(
+						// CSS Classes
+						'css_classes' => array(
+							'widget_wrap' => 'conductor-query-builder-widget'
+						),
+						// CSS Selectors
+						'css_selectors' => array(
+							'widget_wrap' => '.conductor-query-builder-widget'
+						)
+					) ) );
+				}
+			}
+		}
+
+		/**
 		 * This function adjusts the sidebars widgets.
 		 */
 		public function sidebars_widgets( $sidebars_widgets ) {
 			global $wp_the_query;
 
 			// Bail if we're in the admin, we're not doing the wp_enqueue_scripts action, or our temporary sidebar already exists
-			if ( is_admin() || ! doing_action( 'wp_enqueue_scripts' ) || isset( $sidebars_widgets['conductor-qb-temporary-sidebar'] ) )
+			if ( is_admin() || ! doing_action( 'wp_enqueue_scripts' ) || isset( $sidebars_widgets[$this->temporary_sidebar_id] ) )
 				return $sidebars_widgets;
 
 			// Flag to determine if the [conductor] shortcode exists in any of the content in the current main query
@@ -1550,7 +1596,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$conductor_widget = Conduct_Widget();
 
 			// Add our temporary sidebar with a mock Conductor Widget (this ensures Conductor scripts and styles are enqueued)
-			$sidebars_widgets['conductor-qb-temporary-sidebar'] = array(
+			$sidebars_widgets[$this->temporary_sidebar_id] = array(
 				$conductor_widget->id_base . '-0'
 			);
 
@@ -1564,6 +1610,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			global $post;
 
 			// Bail if we're not on a page that supports the Conductor Query Builder
+			// TODO: Turn this into a function to let other add-ons utilize this logic
 			if ( ! apply_filters( 'conductor_query_builder_admin_enqueue_scripts', in_array( $hook, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ), $hook, $post, $this ) )
 				return;
 
@@ -1572,6 +1619,50 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Grab the Conductor Widget instance
 			$conductor_widget = Conduct_Widget();
+
+
+			// Select2 localize data
+			$select2_localize_data = array();
+
+			// Grab the current locale
+			$locale = get_locale();
+
+			// Create the Select2 internationalization file path
+			$select2_i18n_file = Conductor_Query_Builder_Add_On::plugin_dir() . '/assets/js/select2/i18n/' . $locale . '.js';
+
+			// If the Select2 internationalization file doesn't exist
+			if ( ! file_exists( $select2_i18n_file ) ) {
+				// If an underscore exists in the locale
+				if ( strpos( $locale, '_' ) !== false ) {
+					// Replace the underscore in the locale with a hyphen
+					$locale = str_replace( '_', '-', $locale );
+
+					// Create the Select2 internationalization file path again
+					$select2_i18n_file = Conductor_Query_Builder_Add_On::plugin_dir() . '/assets/js/select2/i18n/' . $locale . '.js';
+
+					// If the Select2 internationalization file doesn't exist
+					if ( ! file_exists( $select2_i18n_file ) ) {
+						// Explode the locale by the hyphen character
+						$locale_parts = explode( '-', $locale );
+
+						// Set the locale to the first locale part
+						$locale = $locale_parts[0];
+					}
+				}
+
+				// Create the Select2 internationalization file path again
+				$select2_i18n_file = Conductor_Query_Builder_Add_On::plugin_dir() . '/assets/js/select2/i18n/' . $locale . '.js';
+
+				// If the Select2 internationalization file doesn't exist
+				if ( file_exists( $select2_i18n_file ) ) {
+					// Set the Select2 localize language data
+					$select2_localize_data['language'] = $locale;
+				}
+			}
+
+			// If we're right-to-left
+			if ( is_rtl() )
+				$select2_localize_data['dir'] = 'rtl';
 
 			// Thickbox
 			add_thickbox();
@@ -1590,6 +1681,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 */
 			wp_enqueue_script( 'conductor-query-builder-select2', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/select2/select2.min.js', array( 'jquery' ), Conductor_Query_Builder_Add_On::$version );
 			wp_add_inline_script( 'conductor-query-builder-select2', '( function ( $ ) { $.fn.conductor_qb_select2 = $.fn.select2; }( jQuery ) );' );
+
+			// If we have a language set for Select2
+			if ( isset( $select2_localize_data['language'] ) )
+				// Select2 Language Script
+				wp_enqueue_script( 'conductor-query-builder-select2-language', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/select2/i18n/' . $locale . '.js', array( 'conductor-query-builder-select2' ), Conductor_Query_Builder_Add_On::$version );
 
 			// Conductor Query Builder Admin Stylesheet
 			wp_enqueue_style( 'conductor-query-builder-admin', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/css/conductor-query-builder-admin.css', false, Conductor_Query_Builder_Add_On::$version );
@@ -1685,6 +1781,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				),
 				// Meta
 				'meta' => $this->get_post_meta( $post_id ),
+				// Select2
+				'select2' => $select2_localize_data,
 				// Shortcode
 				'shortcode' => $this->shortcode,
 				// Queries
@@ -1708,6 +1806,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				'widgets' => array(
 					// Conductor
 					'conductor' => array(
+						// Defaults
 						'defaults' => $conductor_widget->defaults
 					)
 				)
@@ -1718,7 +1817,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 *
 			 * Force the scripts to be enqueued by passing the widgets.php hook
 			 */
-			Conductor_Widget::admin_enqueue_scripts( 'widgets.php' );
+			Conductor_Widget::admin_enqueue_scripts( 'widgets.php', array(
+				'conductor-query-builder' => true
+			) );
 		}
 
 		/**
@@ -1767,6 +1868,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Grab the parent ID if this is a revision
 			$parent_id = wp_is_post_revision( $post_id );
+
+			do_action( 'conductor_query_builder_save_post_before', $post_id, $post_type, $parent_id, $query_builder_mode, $conductor_query_builder_data, $this );
 
 			// Grab the simple query builder data
 			$simple_conductor_query_builder_data = ( ! $parent_id ) ? $this->get_simple_query_builder_data( ( $query_builder_mode === 'simple' ) ? $_POST : $conductor_query_builder_data, $query_builder_mode ) : array();
@@ -1838,6 +1941,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					delete_post_meta( $post_id, $this->meta_key_prefix . $clause_type . $this->query_args_meta_key_suffix );
 				}
 			}
+
+			do_action( 'conductor_query_builder_save_post_after', $post_id, $post_type, $parent_id, $query_builder_mode, $conductor_query_builder_data, $this );
 		}
 
 		/**
@@ -2132,6 +2237,10 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 * This function returns the query builder data.
 		 */
 		public function get_query_builder_data( $data, $query_builder_mode = 'simple' ) {
+			// Bail if the Conductor Widget doesn't exist
+			if ( ! function_exists( 'Conduct_Widget' ) )
+				return false;
+
 			// Grab the Conductor Widget instance
 			$conductor_widget = Conduct_Widget();
 
@@ -2215,7 +2324,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				}
 			}
 
-			return apply_filters( 'conductor_query_builder_query_args', $query_args, $post_meta, $clause_types, $this );
+			return apply_filters( 'conductor_query_builder_query_args', $query_args, $post_id, $post_meta, $clause_types, $this );
 		}
 
 		/**
@@ -2293,14 +2402,22 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 															if ( ! is_array( $field_data ) && array_key_exists( $field_data, $this->clauses[$clause_type][$field_type] ) )
 																// Add this parameter to the post meta data
 																$post_meta[$clause_group_id][$sub_clause_group_id][$field_type] = sanitize_text_field( $field_data );
-															// Otherwise if we have an array
-															else
+															// Otherwise we don't have a single parameter or it's not valid
+															else {
+																// If we don't have an array of field data
+																if ( ! is_array( $field_data ) )
+																	// Convert the field data to an array
+																	$field_data = array(
+																		$field_data
+																	);
+
 																// Loop through field data
 																foreach ( $field_data as $field_value )
 																	// If this is a valid field value (parameter)
 																	if ( array_key_exists( $field_value, $this->clauses[$clause_type][$field_type] ) )
 																		// Add this parameter to the post meta data
 																		$post_meta[$clause_group_id][$sub_clause_group_id][$field_type][] = sanitize_text_field( $field_value );
+															}
 														}
 													break;
 
@@ -2673,7 +2790,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								$parameter = ( isset( $parameters_data['operators'] ) && ! empty( $parameters_data['operators'] ) && isset( $sub_clause_group_data['operators'] ) && ! empty( $sub_clause_group_data['operators'] ) ) ? array_search( $sub_clause_group_data['operators'], $parameters_data['operators'] ) : false;
 								$parameter = ( ! $parameter || is_int( $parameter ) ) ? $parameters : $parameter;
 
-								$clause_type_query_args[$parameter] = ( isset( $parameters_data['multiple'] ) && ! empty( $parameters_data['multiple'] ) && isset( $sub_clause_group_data['operators'] ) && ! empty( $sub_clause_group_data['operators'] ) && in_array( $sub_clause_group_data['operators'], $parameters_data['multiple'] ) ) ? $sub_clause_group_data[$values_key] : ( ( is_array( $sub_clause_group_data[$values_key] ) ) ? end( $sub_clause_group_data[$values_key] ) : $sub_clause_group_data[$values_key] );
+								$clause_type_query_args[$parameter] = ( isset( $parameters_data['multiple'] ) && ! empty( $parameters_data['multiple'] ) && isset( $sub_clause_group_data['operators'] ) && ! empty( $sub_clause_group_data['operators'] ) && in_array( $sub_clause_group_data['operators'], $parameters_data['multiple'] ) ) ? $sub_clause_group_data[$values_key] : ( ( is_array( $sub_clause_group_data[$values_key] ) ) ? end( $sub_clause_group_data[$values_key] ) : ( ( isset( $sub_clause_group_data[$values_key] ) ) ? $sub_clause_group_data[$values_key] : false ) );
 
 								// If the parameter value is an operator and it's Boolean use the Boolean value
 								if ( array_key_exists( $parameter, $this->operators ) && is_array( $this->operators[$parameter] ) && isset( $this->operators[$parameter]['type'] ) && $this->operators[$parameter]['type'] === 'bool' )
@@ -2936,7 +3053,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		 * This function adjusts the Conductor query arguments based on the current Conductor
 		 * Query arguments.
 		 */
-		public function conductor_query_args( $query_args ) {
+		public function conductor_query_args( $query_args, $type, $instance, $conductor_widget_query ) {
 			global $wp_query;
 
 			// If we're currently doing a preview
@@ -2985,20 +3102,31 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				}
 			}
 
-			// TODO: Remove after testing above
-			// Set the query arguments to the current Conductor Query arguments
-			//$query_args = $this->current_query_args;
-
 			// Set the paged query argument
 			$query_args['paged'] = $paged;
-
-			// Set the _conductor query argument
-			$query_args['_conductor'] = $_conductor;
 
 			// If we shouldn't have an offset
 			if ( isset( $query_args['offset'] ) && $query_args['offset'] === 0 && ( ! isset( $this->current_query_args['offset'] ) || $this->current_query_args['offset'] === 0 ) )
 				// Unset the offset
 				unset( $query_args['offset'] );
+
+			// If we have a posts per page query argument and the current query arguments do not have a maximum number of posts query argument or the posts per page query argument doesn't match the current query arguments maximum number of posts query argument
+			if ( ! empty( $query_args['posts_per_page'] ) && ( ! isset( $this->current_query_args['max_num_posts'] ) || $query_args['posts_per_page'] !== $this->current_query_args['max_num_posts'] ) ) {
+				// Grab the post counts
+				$post_counts = wp_count_posts( ( is_array( $query_args['post_type'] ) ) ? $query_args['post_type'][0] : $query_args['post_type'] );
+
+				// Grab the offset
+				$offset = ( isset( $query_args['offset'] ) ) ? $query_args['offset'] : 0;
+
+				// Grab the maximum number of pages
+				$max_num_pages = ( ! isset( $this->current_query_args['max_num_posts'] ) ) ? ceil( ( $post_counts->publish - $offset ) / $query_args['posts_per_page'] ) : ceil( $this->current_query_args['max_num_posts'] / $query_args['posts_per_page'] ) ;
+
+				// Set the maximum number of pages _conductor query argument
+				$_conductor['max_num_pages'] = $max_num_pages;
+			}
+
+			// Set the _conductor query argument
+			$query_args['_conductor'] = $_conductor;
 
 			// If we're currently doing a preview
 			if ( $this->doing_preview ) {
@@ -3039,7 +3167,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				return false;
 
 			// Bail if this is a simple query, we don't have any current Conductor Query arguments or the maximum number of posts query argument is set
-			if ( $this->current_query_builder_mode === 'simple' || empty( $this->current_query_args ) || isset( $this->current_query_args['max_num_posts'] )  )
+			if ( $this->current_query_builder_mode === 'simple' || empty( $this->current_query_args ) || isset( $this->current_query_args['max_num_posts'] ) )
 				return $has_pagination;
 
 			// Grab the query
@@ -3049,6 +3177,25 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$has_pagination = ( $query->max_num_pages > 0 );
 
 			return $has_pagination;
+		}
+
+		/**
+		 * This function adjusts the Conductor Widget before widget data attributes
+		 */
+		public function conductor_widget_before_widget_data_attributes( $before_widget_data_attrs, $params, $instance, $conductor_widget_settings, $conductor_widget ) {
+			// Bail if this isn't the query builder temporary sidebar or we don't have query builder data
+			if ( $params[0]['id'] !== $this->temporary_sidebar_id || ! isset( $params[0]['conductor_query_builder'] ) || empty( $params[0]['conductor_query_builder'] ) || ! isset( $params[0]['conductor_query_builder']['before_widget_data_attributes'] ) || empty( $params[0]['conductor_query_builder']['before_widget_data_attributes'] ) )
+				return $before_widget_data_attrs;
+
+			// Grab the before widget data attributes
+			$query_builder_before_widget_data_attrs = $params[0]['conductor_query_builder']['before_widget_data_attributes'];
+
+			// If we have the query builder widget ID before widget attribute
+			if ( isset( $query_builder_before_widget_data_attrs['data-query-builder-widget-id'] ) && ! empty( $query_builder_before_widget_data_attrs['data-query-builder-widget-id'] ) )
+				// Set the widget ID before widget data attribute to the query builder widget ID before widget data attribute
+				$before_widget_data_attrs['data-widget-id'] = $query_builder_before_widget_data_attrs['data-query-builder-widget-id'];
+
+			return $before_widget_data_attrs;
 		}
 
 		/**
@@ -3160,6 +3307,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * This function handles the AJAX request for previewing a query.
 		 */
+		// TODO: Likely need to fix PHP notices/warnings here when clause groups do not have complete data but the preview AJAX request was executed
 		public function wp_ajax_conductor_query_builder_preview_query() {
 			// Generic error message
 			$error = __( 'There was an error previewing the query. Please try again later.', 'conductor' );
@@ -3190,6 +3338,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Grab the Conductor Query Builder data (default to an empty array)
 			$conductor_query_builder_data = $this->get_query_builder_data( $_POST, $query_builder_mode );
+
+			do_action( 'conductor_query_builder_preview_query_before', $post_id, $post_type, $query_builder_mode, $conductor_query_builder_data, $this );
 
 			// Grab the simple query builder data
 			$simple_conductor_query_builder_data = $this->get_simple_query_builder_data( ( $query_builder_mode === 'simple' ) ? $_POST : $conductor_query_builder_data, $query_builder_mode );
@@ -3226,6 +3376,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 			// Grab the output from the buffer
 			$preview = ob_get_clean();
+
+			do_action( 'conductor_query_builder_preview_query_after', $post_id, $post_type, $query_builder_mode, $conductor_query_builder_data, $preview, $this );
 
 			// If the post was inserted successfully
 			if ( $post_id ) {
@@ -3347,9 +3499,17 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		?>
 			<div id="conductor-qb-query-builder-meta-box-tabs-wrapper" class="conductor-qb-tabs-wrapper conductor-qb-query-builder-meta-box-tabs-wrapper conductor-qb-cf">
 				<h2 class="nav-tab-wrapper current conductor-qb-tabs conductor-qb-query-builder-meta-box-tabs conductor-qb-cf">
+					<?php do_action( 'conductor_query_builder_query_builder_tab_before', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
 					<a class="nav-tab nav-tab-active" href="#conductor-qb-meta-box-query-builder-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Query Builder', 'conductor-query-builder' ); ?></a>
+					<?php do_action( 'conductor_query_builder_query_builder_tab_after', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
+
+					<?php do_action( 'conductor_query_builder_output_tab_before', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
 					<a class="nav-tab" href="#conductor-qb-meta-box-output-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Output', 'conductor-query-builder' ); ?></a>
+					<?php do_action( 'conductor_query_builder_output_tab_after', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
+
+					<?php do_action( 'conductor_query_builder_advanced_tab_before', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
 					<a class="nav-tab" href="#conductor-qb-meta-box-advanced-tab-content" data-type="conductor-qb-query-builder"><?php _e( 'Advanced', 'conductor-query-builder' ); ?></a>
+					<?php do_action( 'conductor_query_builder_advanced_tab_after', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
 				</h2>
 			</div>
 
@@ -3357,12 +3517,19 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				<?php // The Conductor Widget relies on the #widgets-right element being present ?>
 				<div id="widgets-right" class="conductor-qb-cf">
 					<div id="conductor-query-builder-conductor-widget" class="conductor-qb-widget widget conductor-qb-cf">
+						<?php do_action( 'conductor_query_builder_query_builder_tab_content_before', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
+
 						<?php
 							/*
 							 * Query Builder Tab Content
 							 */
 							Conductor_Query_Builder_Admin_Views::meta_box_query_builder_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget );
 						?>
+
+						<?php do_action( 'conductor_query_builder_query_builder_tab_content_after', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
+
+
+						<?php do_action( 'conductor_query_builder_output_tab_content_before', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
 
 						<?php
 							/*
@@ -3371,12 +3538,19 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							Conductor_Query_Builder_Admin_Views::meta_box_output_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget );
 						?>
 
+						<?php do_action( 'conductor_query_builder_output_tab_content_after', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
+
+
+						<?php do_action( 'conductor_query_builder_advanced_tab_content_before', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
+
 						<?php
 							/*
 							 * Advanced Tab Content
 							 */
 							Conductor_Query_Builder_Admin_Views::meta_box_advanced_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget );
 						?>
+
+						<?php do_action( 'conductor_query_builder_advanced_tab_content_after', $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget ); ?>
 					</div>
 				</div>
 			</div>
@@ -3390,9 +3564,31 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			$simple_conductor_query_builder_data = array();
 
 			// Loop through data
-			foreach ( $data as $value )
-				// Merge values into simple query builder data
-				$simple_conductor_query_builder_data += $value;
+			foreach ( $data as $value ) {
+				// Flag to determine if the value is a multidimensional array
+				$is_multidimensional_array = false;
+
+				// Loop through the value
+				foreach ( $value as $sub_value ) {
+					// If the sub-value is an array
+					if ( is_array( $sub_value ) ) {
+						// Set the multidimensional array flag
+						$is_multidimensional_array = true;
+
+						// Break from the loop
+						break;
+					}
+				}
+
+				// If this value is a multidimensional array
+				if ( $is_multidimensional_array )
+					// Replace this value recursively into simple query builder data (using array_replace_recursive() because it will overwrite existing values and add new values, instead of creating new arrays for nested data like array_merge_recursive() does)
+					$simple_conductor_query_builder_data = array_replace_recursive( $simple_conductor_query_builder_data, $value );
+				// Otherwise this value isn't a multidimensional array
+				else
+					// Merge this value into simple query builder data
+					$simple_conductor_query_builder_data += $value;
+			}
 
 			// Strip slashes (deep)
 			$simple_conductor_query_builder_data = ( $stripslashes_deep ) ? stripslashes_deep( $simple_conductor_query_builder_data ) : $simple_conductor_query_builder_data;
@@ -3898,7 +4094,6 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * This function returns an instance for use in Conductor Widgets.
 		 */
-		// TODO: Here we need to set feature_many if the query builder mode for this query is advanced
 		public function get_conductor_widget_instance( $post_id = false, $title = '', $instance = array() ) {
 			global $post;
 
@@ -3923,16 +4118,16 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// Parse the instance with the defaults
 			$instance = wp_parse_args( $instance, $conductor_widget->defaults );
 
+
 			/*
-			 * Conductor Widget sanitization (Conductor_Widget::update()) requires
-			 * these parameters.
+			 * Conductor Widget sanitization (Conductor_Widget::update()) requires these parameters.
 			 */
 
 			$instance['post_type'] = ( isset( $instance['post_type'] ) ) ? $instance['post_type'] : $conductor_widget->defaults['query_args']['post_type']; // Post Type
 			$instance['cat'] = ( isset( $instance['cat'] ) ) ? $instance['cat'] : $conductor_widget->defaults['query_args']['cat']; // Category ID
 			$instance['orderby'] = ( isset( $instance['orderby'] ) ) ? $instance['orderby'] : $conductor_widget->defaults['query_args']['orderby']; // Order By
 			$instance['order'] = ( isset( $instance['order'] ) ) ? $instance['order'] : $conductor_widget->defaults['query_args']['order']; // Order
-			$instance['max_num_posts'] = ( isset( $instance['max_num_posts'] ) ) ? $instance['max_num_posts'] : $conductor_widget->defaults['query_args']['max_num_posts']; // Maximum Number of Posts
+			$instance['max_num_posts'] = ( $this->current_query_builder_mode !== 'advanced' && isset( $instance['max_num_posts'] ) ) ? $instance['max_num_posts'] : ''; // Maximum Number of Posts
 			$instance['offset'] = ( isset( $instance['offset'] ) ) ? $instance['offset'] : $conductor_widget->defaults['query_args']['offset']; // Offset
 			$instance['posts_per_page'] = ( isset( $instance['posts_per_page'] ) ) ? $instance['posts_per_page'] : $conductor_widget->defaults['query_args']['posts_per_page']; // Posts Per Page
 
@@ -3946,13 +4141,13 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			global $post;
 
 			// Post ID
-			$post_id = ( $post_id === -1 ) ? get_post_field( 'ID', $post ) : ( int ) $post_id;
+			$post_id = ( $post_id === false ) ? get_post_field( 'ID', $post ) : sanitize_text_field( $post_id );
 
-			// Adjust the Conductor widget settings
+			// Adjust the Conductor Widget settings
 			add_filter( 'conductor_widget_settings', array( $this, 'conductor_widget_settings' ) );
 
 			// Adjust the Conductor query arguments
-			add_filter( 'conductor_query_args', array( $this, 'conductor_query_args' ) );
+			add_filter( 'conductor_query_args', array( $this, 'conductor_query_args' ), 10, 4 );
 
 			// Adjust the number of found posts
 			add_filter( 'conductor_query_found_posts', array( $this, 'conductor_query_found_posts' ), 10, 3 );
@@ -3977,7 +4172,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				// If this is a Conductor Query, this Conductor Query isn't published, and we're on the front-end
 				if ( $post_type === $this->post_type_name && $post_status !== 'publish' && ! is_admin() ) {
 					// If the current user is logged in and can edit this piece of content
-					if ( is_user_logged_in() && current_user_can( 'edit_post', get_post_field( 'ID', $the_post ) ) )
+					if ( is_user_logged_in() && current_user_can( 'edit_post', $post_id ) )
 						// Output a message to the user
 						printf( '<div class="conductor-qb-notice conductor-qb-editor-notice"><p><strong>%1$s</strong> %2$s</p></div>',
 							__( 'Please Note:', 'conductor-query-builder' ),
@@ -3989,6 +4184,26 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				}
 				// Otherwise, this Conductor Query is published, we're in the admin, or this isn't a Conductor Query
 				else {
+					// Widget
+					$widget = false;
+
+					// If the type is an array
+					if ( is_array( $type ) && ! empty( $type ) && isset( $type['type'] ) ) {
+						// Switch based on type
+						switch ( $type['type'] ) {
+							// Widget
+							case 'widget':
+								// If we have a widget
+								if ( isset( $type['widget'] ) )
+									// Set the widget
+									$widget = $type['widget'];
+
+								// Set the type
+								$type = $type['type'];
+							break;
+						}
+					}
+
 					// Add this Conductor Query to the list of rendered queries
 					$this->rendered[$type][] = $post_id;
 
@@ -4010,24 +4225,113 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					// Set the global doing Conductor Query flag
 					$this->doing_conductor_query = true;
 
+					// Query builder button element
+					$query_builder_button_el = '<a class="post-edit-link button conductor-query-builder-button conductor-query-builder-edit-button conductor-query-builder-edit-query-button conductor-qb-button conductor-qb-edit-button conductor-qb-edit-query-button" href="' . esc_url( get_edit_post_link( $post_id ) ) . '" style="font-size: 1rem; display: inline-block; vertical-align: middle;">' . __( 'Edit Query', 'conductor-query-builder' ) . '</a>';
+
+					// Start output buffering
+					ob_start();
+
+						// Display the opening query builder button wrapper element
+						$conductor_widget->display_widget_wrapper_el( 'widget_query_builder_edit_button', $this->current_conductor_widget_instance, array(), 'open', array(
+							'conductor-query-builder-button-wrap',
+							'conductor-query-builder-button-wrapper',
+							'conductor-query-builder-edit-button-wrap',
+							'conductor-query-builder-edit-button-wrapper',
+							'conductor-query-builder-edit-query-button-wrap',
+							'conductor-query-builder-edit-query-button-wrapper',
+							'conductor-qb-button-wrap',
+							'conductor-qb-button-wrapper',
+							'conductor-qb-edit-button-wrap',
+							'conductor-qb-edit-button-wrapper',
+							'conductor-qb-edit-query-button-wrap',
+							'conductor-qb-edit-query-button-wrapper'
+						) );
+
+					// Grab the opening query builder button wrapper element from the buffer
+					$opening_query_builder_button_wrapper_el = ob_get_clean();
+
+					// Start output buffering
+					ob_start();
+
+						// Display the closing query builder button wrapper element
+						$conductor_widget->display_widget_wrapper_el( 'widget_query_builder_edit_button', $this->current_conductor_widget_instance, array() );
+
+					// Grab the opening query builder button wrapper element from the buffer
+					$closing_query_builder_button_wrapper_el = ob_get_clean();
+
+
+					// Before widget data attributes
+					$raw_before_widget_data_attrs = array(
+						'data-query-builder-post-id' => $post_id,
+						'data-query-builder-type' => $type,
+						'data-query-builder-number' => $number,
+						'data-query-builder-widget-id' => '',
+						'data-query-builder-widget-number' => $number
+					);
+
+					// Switch based on type
+					switch ( $type ) {
+						// Function
+						case 'function':
+							// Set the widget ID widget data attribute TODO: Future: Convert prefix into a variable?
+							$raw_before_widget_data_attrs['data-query-builder-widget-id'] = 'conductor-query-builder-function-' . $number;
+						break;
+
+						// Shortcode
+						case 'shortcode':
+							// Set the widget ID widget data attribute TODO: Future: Convert prefix into a variable?
+							$raw_before_widget_data_attrs['data-query-builder-widget-id'] = 'conductor-query-builder-shortcode-' . $number;
+						break;
+
+						// Widget
+						case 'widget':
+							// If we have a widget
+							if ( $widget ) {
+								// Set the widget ID widget data attribute
+								$raw_before_widget_data_attrs['data-query-builder-widget-id'] = $widget->id;
+
+								// Set the widget number before widget data attribute
+								$raw_before_widget_data_attrs['data-query-builder-widget-number'] = $widget->number;
+							}
+						break;
+					}
+
+					// Filter before widget data attributes
+					$raw_before_widget_data_attrs = apply_filters( 'conductor_query_builder_widget_before_widget_data_attributes', $raw_before_widget_data_attrs, $number, $widget, $post_id, $type, $query_args, $conductor_widget, $this );
+
+					// Prepare the data attributes
+					$before_widget_data_attrs = $conductor_widget->prepare_data_attributes( $raw_before_widget_data_attrs );
+
+
+					// Adjust the Conductor Widget before widget data attributes
+					add_filter( 'conductor_widget_before_widget_data_attributes', array( $this, 'conductor_widget_before_widget_data_attributes' ), 10, 5 );
+
 					// Mimic dynamic sidebar parameters
 					$dynamic_sidebar_params = apply_filters( 'dynamic_sidebar_params', array(
 						array(
 							'name' => __( 'Conductor Query Builder Temporary Sidebar', 'conductor-query-builder' ),
-							'id' => 'conductor-qb-temporary-sidebar',
+							'id' => $this->temporary_sidebar_id,
 							'description' => __( 'This widget area is the temporary sidebar used by Conductor Query Builder when rendering a Conductor Query.', 'conductor-query-builder' ),
 							'class' => '', // This is almost always empty
-							'before_widget' => '<div id="' . esc_attr( sprintf( 'conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '" class="widget conductor-qb-widget ' . esc_attr( sprintf( 'conductor-qb-widget-%1$s conductor-qb-widget-%1$s-%2$s conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . ' %s">',
-							'after_widget' => '</div>',
-							'before_title' => '<h3 class="widgettitle widget-title conductor-qb-widget-title ' . esc_attr( sprintf( 'conductor-qb-widget-title-%1$s conductor-qb-widget-title-%1$s-%2$s conductor-qb-widget-title-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '">',
-							'after_title' => '</h3>',
+							'before_widget' => '<div id="' . esc_attr( sprintf( 'conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '" class="widget conductor-qb-widget conductor-query-builder-widget ' . esc_attr( sprintf( 'conductor-qb-widget-%1$s conductor-qb-widget-%1$s-%2$s conductor-qb-widget-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . ' %s" ' . $before_widget_data_attrs . '>',
+							'after_widget' => ( is_user_logged_in() && ! is_admin() && current_user_can( 'edit_post', $post_id ) ) ? $opening_query_builder_button_wrapper_el . $query_builder_button_el . $closing_query_builder_button_wrapper_el . '</div>' : '</div>',
+							'before_title' => '<h3 class="widgettitle widget-title conductor-qb-widget-title conductor-query-builder-widget-title ' . esc_attr( sprintf( 'conductor-qb-widget-title-%1$s conductor-qb-widget-title-%1$s-%2$s conductor-qb-widget-title-%1$s-%2$s-%3$s', $post_id, $type, $number ) ) . '">',
+							'after_title' => ( is_user_logged_in() && ! is_admin() && current_user_can( 'edit_post', $post_id ) ) ? ' - ' . $query_builder_button_el .'</h3>' : '</h3>',
 							'widget_id' => $conductor_widget->id_base . '-' . $number,
-							'widget_name' => $conductor_widget->name
+							'widget_name' => $conductor_widget->name,
+							// Query Builder
+							'conductor_query_builder' => array(
+								'widget' => $widget,
+								'before_widget_data_attributes' => $raw_before_widget_data_attrs
+							)
 						),
 						array(
 							'number' => $this->the_widget_number
 						)
 					) );
+
+					// Remove the Conductor Widget before widget data attributes
+					remove_filter( 'conductor_widget_before_widget_data_attributes', array( $this, 'conductor_widget_before_widget_data_attributes' ) );
 
 					// Arguments
 					$args = apply_filters( 'conductor_query_builder_the_widget_args', array(
@@ -4049,7 +4353,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				}
 			}
 
-			// Remove the Conductor widget settings adjustment
+			// Remove the Conductor Widget settings adjustment
 			remove_filter( 'conductor_widget_settings', array( $this, 'conductor_widget_settings' ) );
 
 			// Remove the Conductor query arguments adjustment
@@ -4065,17 +4369,18 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			remove_all_actions( 'conductor_widget_display_content_' . $this->the_widget_number );
 
 
-			// Reset the global query builder mode reference
-			$this->current_query_builder_mode = false;
-
-			// Reset the global Conductor Widget instance reference
-			$this->current_conductor_widget_instance = array();
+			// Reset the global doing Conductor Query flag
+			$this->doing_conductor_query = false;
 
 			// Reset the global query arguments reference
 			$this->current_query_args = array();
 
-			// Reset the global doing Conductor Query flag
-			$this->doing_conductor_query = false;
+			// Reset the global Conductor Widget instance reference
+			$this->current_conductor_widget_instance = array();
+
+			// Reset the global query builder mode reference
+			$this->current_query_builder_mode = false;
+
 		}
 
 		/**

@@ -2,8 +2,9 @@
  * Conductor Query Builder - Beaver Builder Module Settings
  */
 
-( function( $ ) {
+( function( $, FLBuilder, FLBuilderSettingsForms ) {
 	"use strict";
+
 
 	/**
 	 * Conductor Query Builder - Beaver Builder Module
@@ -172,4 +173,27 @@
 			return true;
 		}
 	} );
-} )( jQuery );
+
+
+	/**
+	 * This function runs when the Beaver Builder layout rendering is complete.
+	 */
+	FLBuilder.addHook( 'didRenderLayoutComplete', function() {
+		// If this is a Conductor Query Builder Beaver Builder Module
+		if ( FLBuilderSettingsForms && FLBuilderSettingsForms.config && FLBuilderSettingsForms.config.id && FLBuilderSettingsForms.config.id === 'class-conductor-query-builder-beaver-builder-module' ) {
+			// Start a new thread; delay 1ms
+			setTimeout( function() {
+				// Trigger the Conductor Widget initialize event on the body element (force)
+				$( 'body' ).trigger( 'conductor-widget-init', [ null, true ] );
+			}, 1 );
+		}
+	} );
+
+	/**
+	 * This function runs when the Beaver Builder layout is published.
+	 */
+	FLBuilder.addHook( 'didPublishLayout', function() {
+		// Trigger the Conductor Widget initialize event on the body element (force)
+		$( 'body' ).trigger( 'conductor-widget-init', [ null, true ] );
+	} );
+} )( jQuery, FLBuilder, FLBuilderSettingsForms );

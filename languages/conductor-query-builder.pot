@@ -1,0 +1,793 @@
+# Copyright (C) 2017 Conductor - Query Builder Add-On
+# This file is distributed under the same license as the Conductor - Query Builder Add-On package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Conductor - Query Builder Add-On 1.0.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/conductor-query-builder\n"
+"POT-Creation-Date: 2017-06-30 21:44:30+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: conductor-query-builder.php:128
+msgid "Conductor Query Builder Add-on requires Conductor version 1.4.0 or greater. Please install &amp; activate Conductor version 1.4.0 or greater and try again."
+msgstr ""
+
+#: includes/admin/views/html-meta-box-query-builder-tab-content.php:42
+msgid "Simple Query Builder"
+msgstr ""
+
+#: includes/admin/views/html-meta-box-query-builder-tab-content.php:72
+msgid "Advanced Query Builder"
+msgstr ""
+
+#: includes/admin/views/js-meta-box-query-builder-tab-content-actions.php:43
+msgid "Switch to Builder"
+msgstr ""
+
+#: includes/admin/views/js-meta-box-query-builder-tab-content-actions.php:43
+msgid "Switch to Simple"
+msgstr ""
+
+#: includes/admin/views/js-meta-box-query-builder-tab-content-clause-group.php:74
+msgid "Remove Group"
+msgstr ""
+
+#: includes/admin/views/js-meta-box-query-builder-tab-content-sub-clause-group.php:142
+msgid "Remove Sub-Clause Group"
+msgstr ""
+
+#: includes/admin/views/js-meta-box-query-builder-tab-content-sub-clause-group.php:151
+msgid "Add Sub-Clause Group"
+msgstr ""
+
+#: includes/admin/views/js-shortcode-query-builder-create-title.php:24
+msgid "Title %1$s"
+msgstr ""
+
+#: includes/admin/views/js-shortcode-query-builder-create-title.php:28
+msgid "You must enter a title to save this query."
+msgstr ""
+
+#: includes/admin/views/js-shortcode-query-builder-insert.php:26
+msgid "Select an existing Conductor Query"
+msgstr ""
+
+#: includes/admin/views/js-shortcode-query-builder-insert.php:50
+msgid "Add a title (optional)"
+msgstr ""
+
+#: includes/beaver-builder/class-conductor-query-builder-beaver-builder-module.php:45
+msgid "Conductor Query Builder"
+msgstr ""
+
+#: includes/beaver-builder/class-conductor-query-builder-beaver-builder-module.php:46
+msgid "The Conductor Query Builder Module"
+msgstr ""
+
+#: includes/beaver-builder/class-conductor-query-builder-beaver-builder-module.php:47
+#: includes/class-conductor-query-builder-beaver-builder.php:277
+msgid "Conductor"
+msgstr ""
+
+#: includes/class-conductor-query-builder-beaver-builder.php:90
+#: includes/class-conductor-query-builder.php:1516
+#: includes/class-conductor-query-builder.php:3403
+msgid "Query Builder"
+msgstr ""
+
+#: includes/class-conductor-query-builder-beaver-builder.php:96
+msgid "Conductor Query Builder Beaver Builder Update Count"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:236
+msgid "="
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:238
+msgid "!="
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:240
+msgid "&gt;"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:242
+msgid "&gt;="
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:244
+msgid "&lt;"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:246
+msgid "&lt;="
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:249
+msgid "AND"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:255
+msgid "EXISTS"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:260
+msgid "NOT EXISTS"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:264
+msgid "LIKE"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:266
+msgid "NOT LIKE"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:269
+msgid "IN"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:275
+msgid "NOT IN"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:281
+msgid "TRUE"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:287
+msgid "FALSE"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:292
+msgid "Ascending"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:294
+msgid "Descending"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:297
+msgid "BETWEEN"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:304
+msgid "NOT BETWEEN"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:711
+msgid "All Top Level Pages"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:752
+msgctxt "label for author ID value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:758
+msgctxt "label for author name value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:793
+msgctxt "label for post ID value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:793
+#: includes/class-conductor-query-builder.php:816
+#: includes/class-conductor-query-builder.php:1724
+msgid "(no title)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:801
+msgctxt "label for post name value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:801
+#: includes/class-conductor-query-builder.php:808
+msgid "#%d"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:808
+msgctxt "label for page name value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:816
+msgctxt "label for post parent ID value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:866
+msgctxt "label for category ID value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:872
+msgctxt "label for category name value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:881
+msgctxt "label for tag ID value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:887
+msgctxt "label for tag name value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:908
+msgctxt "label for taxonomy term slug value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:913
+msgctxt "label for taxonomy term ID value"
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:984
+msgid "Select a content type..."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1002
+msgid "From"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1026
+#: includes/class-conductor-query-builder.php:1101
+#: includes/class-conductor-query-builder.php:1147
+#: includes/class-conductor-query-builder.php:1199
+#: includes/class-conductor-query-builder.php:1327
+msgid "Select a parameter..."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1034
+#: includes/class-conductor-query-builder.php:1109
+#: includes/class-conductor-query-builder.php:1155
+#: includes/class-conductor-query-builder.php:1207
+#: includes/class-conductor-query-builder.php:1335
+msgid "Select an operator..."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1044
+#: includes/class-conductor-query-builder.php:1119
+#: includes/class-conductor-query-builder.php:1165
+#: includes/class-conductor-query-builder.php:1345
+msgid "Enter a value..."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1058
+msgid "Where"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1064
+msgid "Author ID"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1065
+msgid "Author Name (slug; user_nicename)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1066
+msgid "Has Password"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1067
+#: includes/class-conductor-query-builder.php:1244
+msgid "ID"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1068
+msgid "Keyword"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1069
+#: includes/class-conductor-query-builder.php:1272
+msgid "Name (slug)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1070
+msgid "Page Name (slug)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1071
+msgid "Parent (IDs)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1072
+msgid "Password"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1073
+msgid "Post Status"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1074
+msgid "User Permission"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1128
+msgid "Where Meta (Custom Field)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1174
+msgid "Where Taxonomy"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1178
+msgid "Category ID"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1179
+msgid "Category Name (slug)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1180
+msgid "Tag ID"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1181
+msgid "Tag Name (slug)"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1217
+msgid "Order By"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1224
+msgid "None"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1229
+msgid "Author"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1234
+msgid "Comment Count"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1239
+msgid "Date"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1250
+msgid "Menu Order"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1256
+msgid "Meta Value"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1262
+msgid "Meta Value Number"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1267
+msgid "Modified Date"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1277
+msgid "Parent ID"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1283
+msgid "post__in"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1289
+msgid "post_parent__in"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1294
+msgid "Random"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1299
+#: includes/widgets/class-conductor-query-builder-widget.php:97
+msgid "Title"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1304
+msgid "Post Type"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1359
+msgid "Limit"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1365
+msgid "Offset"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1367
+msgid "Maximum Number of Posts"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1368
+msgid "Posts Per Page"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1369
+msgid "Ignore Sticky Posts"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1420
+msgid "%1$s: Name"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1425
+msgid "%1$s: Slug"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1430
+msgid "%1$s: Term ID"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1444
+#: includes/class-conductor-query-builder.php:1448
+msgid "Queries"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1446
+msgctxt "post type general name"
+msgid "Queries"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1447
+msgctxt "post type singular name"
+msgid "Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1449
+msgid "Conductor Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1450
+msgid "Parent:"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1451
+msgid "All Queries"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1452
+msgid "Add New Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1453
+msgid "Add New"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1454
+msgid "New Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1455
+#: includes/class-conductor-query-builder.php:4095
+#: includes/class-conductor-query-builder.php:4097
+msgid "Edit Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1456
+msgid "Update Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1457
+msgid "View Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1458
+msgid "No Conductor Queries found"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1459
+msgid "Not Conductor Queries found in Trash"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1460
+msgid "Insert into Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1461
+msgid "Uploaded to this Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1462
+msgid "Conductor Queries list"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1463
+msgid "Conductor Queries list navigation"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1464
+msgid "Filter Conductor Queries list"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1466
+msgid "Conductor Query Builder queries; create queries for your Conductor Widgets"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1496
+#: includes/class-conductor-query-builder.php:3299
+msgid "Notes"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1501
+#: includes/class-conductor-query-builder.php:3310
+msgid "Shortcode"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1504
+#: includes/class-conductor-query-builder.php:3323
+msgid "Function"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1508
+#: includes/class-conductor-query-builder.php:3336
+msgid "Front-End Preview"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1655
+msgid "Copied to clipboard!"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1657
+msgid "Please manually select the text and copy."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1659
+msgid "Press Command (⌘) + C to copy."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1660
+msgid "Press Command (⌘) + X to cut."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1663
+msgid "Press Ctrl + C to copy."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1664
+msgid "Press Ctrl + X to cut."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1712
+msgctxt "label for add"
+msgid "+"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1715
+msgid "There was a problem fetching the front-end preview for this query."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1716
+msgid "The shortcode for this query could not be generated at this time. Please try again."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1719
+msgctxt "label for AND clause"
+msgid "And"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1720
+msgctxt "label for clause group"
+msgid "Clause Group"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1721
+msgctxt "label for OR clause"
+msgid "Or"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1723
+msgctxt "label for selecting a query"
+msgid "&mdash; Select a Query &mdash;"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1725
+msgctxt "label for no queries"
+msgid "We weren't able to find any existing queries. You can create a query with the query builder the \"Create\" tab."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1728
+msgctxt "label for shortcode add"
+msgid "+"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1729
+msgctxt "message for shortcode confirm"
+msgid "You have unsaved changes to your query which will be lost. Are you sure you want to close this window?"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1730
+msgctxt "label for shortcode insert"
+msgid "Insert"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1731
+msgctxt "label for shortcode create"
+msgid "Create &amp; Insert"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1732
+msgctxt "label for shortcode create"
+msgid "Insert or Create a Conductor Query"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1734
+msgctxt "label for sub-clause group"
+msgid "Sub-Clause Group"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1786
+msgid "Add Conductor Query Shortcode"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1787
+msgctxt "C is for Conductor"
+msgid "C"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:1788
+msgid "Add Conductor"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:2054
+msgid "Conductor Query Builder: Conductor Widget Instance"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:2057
+msgid "Conductor Query Builder: Query Builder Mode"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:2068
+msgid "Conductor Query Builder: %1$s Clause Type"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:2071
+msgid "Conductor Query Builder: %1$s Clause Type Query Arguments"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:2941
+msgid "Insert"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:2942
+msgid "Create"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3150
+msgid "This query returned no results. Please adjust your query and try again."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3164
+msgid "There was an error creating the query. Please try again later."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3179
+msgid "You do not have sufficient permissions to create a query on this site."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3188
+msgid "A title for this query was not specified. Please enter a title and try again."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3217
+msgid "There was an error previewing the query. Please try again later."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3236
+msgid "You do not have sufficient permissions to preview a query on this site."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3301
+msgid "Add notes to help describe this query (for internal use only)."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3311
+msgid "Display this query anywhere in your content by using the following shortcodes:"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3312
+#: includes/class-conductor-query-builder.php:3313
+#: includes/class-conductor-query-builder.php:3325
+#: includes/class-conductor-query-builder.php:3326
+msgid "Copy to clipboard"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3314
+msgid "Hint: You can specify a custom title in the <code>title</code> attribute."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3324
+msgid "Display this query anywhere in your theme by using the following functions:"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3327
+msgid "Hint: You can specify a custom title in the <code>title</code> (second) argument."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3337
+msgid "The following is a preview of what this query will output on the front-end. Note: This preview will only show the first result of the query and is not styled to match the front-end (CSS)."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3407
+msgid "Output"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:3411
+msgid "Advanced"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:4057
+msgid "Please Note:"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:4059
+msgid "The Conductor Query which you have chosen to display is not currently published. Please publish the query and try again."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:4060
+msgid "This message is only displayed to logged in users with permissions to publish this query. You are seeing this message because you are logged in."
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:4090
+msgid "Conductor Query Builder Temporary Sidebar"
+msgstr ""
+
+#: includes/class-conductor-query-builder.php:4092
+msgid "This widget area is the temporary sidebar used by Conductor Query Builder when rendering a Conductor Query."
+msgstr ""
+
+#: includes/widgets/class-conductor-query-builder-widget.php:61
+msgid "Display a Conductor Query."
+msgstr ""
+
+#: includes/widgets/class-conductor-query-builder-widget.php:68
+msgid "Conductor Query Widget"
+msgstr ""
+
+#: includes/widgets/class-conductor-query-builder-widget.php:127
+msgid "Select a Query"
+msgstr ""
+
+#: includes/widgets/class-conductor-query-builder-widget.php:130
+msgid "&mdash; Select &mdash;"
+msgstr ""
+
+#: includes/widgets/class-conductor-query-builder-widget.php:139
+msgid "#%d (no title)"
+msgstr ""
+
+#: includes/widgets/class-conductor-query-builder-widget.php:156
+msgid "Content management brought to you by <a href=\"%1$s\" target=\"_blank\">Conductor</a>"
+msgstr ""
+#. Plugin Name of the plugin/theme
+msgid "Conductor - Query Builder Add-On"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "https://www.conductorplugin.com/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "The Conductor Query Builder add-on allows you to craft more complex queries with Conductor. The add-on has a simple view, and a builder view, which are usable in a shortcode for any page or post within your WordPress website."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Slocum Studio"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "https://www.slocumstudio.com/"
+msgstr ""

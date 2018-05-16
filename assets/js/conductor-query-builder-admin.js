@@ -273,46 +273,52 @@ var conductor_query_builder = conductor_query_builder || {};
 			conductor: {
 				// Widgets
 				widget: {
+					/**
+					 * This function resets the Conductor Widget.
+					 * @param data
+					 */
 					reset: function( data ) {
 						// Defaults
 						data = data || {};
 
-						var $input = false,
+						var $conductor_widget_inputs,
+							$input = false,
 							output_element_ids = [];
 
-						// Loop through the Conductor widget defaults (delay 1ms; new thread)
+						// Start a new thread; delay 1ms
 						setTimeout( function() {
-							_.each( conductor_query_builder.widgets.conductor.defaults, function( default_value, name ) {
-								// Bail if this is the output features default
-								// TODO: Add this option name to localized data to allow for adjustment by developers
-								if ( name === 'output_features' ) {
-									return;
-								}
+							// Grab the Conductor Widget input elements
+							$conductor_widget_inputs = Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-widget-setting :input' );
 
-								// Reset the $input reference
-								$input = false;
 
-								// If we have data and this name exists in data
-								if ( ! _.isEmpty( data ) && data.hasOwnProperty( name ) ) {
-									// Set the default value to the data value
-									default_value = data[name];
-								}
+							// If we have Conductor Widget input elements
+							if ( $conductor_widget_inputs.length ) {
+								// Loop through the Conductor Widget input elements
+								$conductor_widget_inputs.each( function() {
+									var $this = $( this ),
+										node_name = this.nodeName.toLowerCase(),
+										input_type = ( node_name === 'input' ) ? $this.attr( 'type' ) : null,
+										data_default = ( input_type === 'checkbox' || input_type === 'radio' ) ? $this.data( 'default' ) : null,
+										data_default_value = ( ! data_default ) ? $this.data( 'default-value' ) : null,
+										checked;
 
-								// If this default value is an object
-								if ( _.isObject( default_value ) ) {
-									// Switch based on name
-									switch ( name ) {
-										// Output
-										case 'output':
-											// Reset the Conductor Widget output data
-											Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-output-data' ).val( JSON.stringify( default_value ) );
+									// If we don't have a data default data and we don't have a data default value
+									if ( data_default === null && ( data_default_value === null || typeof data_default_value === 'undefined' ) ) {
+										// Grab the data default value from the parent element
+										data_default_value = $this.parents( '.conductor-widget-setting' ).data( 'default-value' );
+									}
 
-											// Reset the feature on select
-											Conductor_Query_Builder_Shortcode_View.$el.find( '.featured-one-select' ).val( '' );
+									// If we have a data default data and we have a data default value
+									if ( data_default !== null || ( data_default_value !== null && typeof data_default_value !== 'undefined' ) ) {
+										// If this is the Conductor Widget output data element
+										if ( $this.hasClass( 'conductor-output-data' ) ) {
+											// Set the value
+											$this.val( JSON.stringify( data_default_value ) );
 
-											// Loop through sub-default values
-											_.each( default_value, function( sub_default_value, priority ) {
-												var $label;
+											// Loop through data default values
+											_.each( data_default_value, function( sub_default_value, priority ) {
+												var $label,
+													$label_input;
 
 												// Grab the correct element for this output element
 												$input = Conductor_Query_Builder_Shortcode_View.$el.find( '[data-id="' + sub_default_value.id + '"]' );
@@ -347,6 +353,9 @@ var conductor_query_builder = conductor_query_builder || {};
 												// Grab the label element
 												$label = $input.find( '.conductor-widget-output-element-label .label' );
 
+												// Grab the label input element
+												$label_input = $input.find( '.conductor-widget-output-element-label-input input' );
+
 												// If don't we have a label element
 												if ( ! $label.length ) {
 													// Grab the correct label element
@@ -361,11 +370,20 @@ var conductor_query_builder = conductor_query_builder || {};
 													$label.parent().removeClass( 'editing' );
 												}
 
-												// Reset the label
-												$label.html( sub_default_value.label );
+												// If we have a label
+												if ( $label.length ) {
+													// Reset the label
+													$label.html( sub_default_value.label );
 
-												// Reset the data-label attribute
-												$input.data( 'label', sub_default_value.label ).attr( 'data-label', sub_default_value.label );
+													// If we have a label input
+													if ( $label_input.length ) {
+														// Reset the label input
+														$label_input.val( '' ).data( 'current', '' ).attr( 'data-current', '' );
+													}
+
+													// Reset the data-label attribute
+													$input.data( 'label', sub_default_value.label ).attr( 'data-label', sub_default_value.label );
+												}
 
 												// Reset the data-priority attribute
 												$input.data( 'priority', priority ).attr( 'data-priority', priority );
@@ -384,99 +402,54 @@ var conductor_query_builder = conductor_query_builder || {};
 													$this.remove();
 												}
 											} );
-										break;
+										}
+										// Otherwise this isn't the Conductor Widget output data element
+										else {
+											// If we have an input type
+											if ( input_type !== null ) {
+												// Switch based on input type
+												switch ( input_type ) {
+													// Checkbox and Radio
+													case 'checkbox':
+													case 'radio':
+														// Grab the checked property
+														checked = $this.prop( 'checked' );
 
-										// Default
-										default:
-											// Loop through sub-default values
-											_.each( default_value, function( sub_default_value, sub_name ) {
-												// Switch the sub-default value from a Boolean false to an empty string
-												sub_default_value = ( typeof sub_default_value === 'boolean' && ! sub_default_value ) ? '' : sub_default_value;
+														// Set the checked property
+														$this.prop( 'checked', data_default );
 
-												// Swich based on name
-												switch ( name ) {
-													// Flexbox
-													case 'flexbox':
-														// Switch based on sub-name
-														switch ( sub_name ) {
-															// Columns
-															case 'columns':
-																// Grab the correct :input element for this default value
-																$input = Conductor_Query_Builder_Shortcode_View.$el.find( ':input[id$="' + name + '_' + sub_name + '"]' );
-
-																// If we have an input element that doesn't match the default value
-																if ( $input.length && $input.val() !== sub_default_value ) {
-																	// Reset the input value (trigger a change and input event for hidden elements)
-																	$input.val( sub_default_value ).trigger( 'change input' );
-
-																	// Adjust the displayed value
-																	$input.next( '.conductor-flexbox-columns-value' ).html( sub_default_value );
-																}
-															break;
+														// If the checked property does not match the data default value
+														if ( checked !== data_default ) {
+															// Trigger the change event on this input element
+															$this.trigger( 'change' );
 														}
 													break;
 
 													// Default
 													default:
-														// Grab the correct :input element for this default value
-														$input = Conductor_Query_Builder_Shortcode_View.$el.find( ':input[id$="' + sub_name + '"]' );
-
-														// Switch based on name
-														switch ( sub_name ) {
-															// Category
-															case 'cat':
-																// Set the default value to zero
-																sub_default_value = '0';
-															break;
-														}
-
-														// If we have an input element that doesn't match the default value
-														if ( $input.length && $input.val() !== sub_default_value ) {
-															// Reset the input value (trigger a change event for hidden elements)
-															$input.val( sub_default_value ).trigger( 'change' );
-														}
+														// Set the value (trigger the change and input event event)
+														$this.val( data_default_value ).trigger( 'change' ).trigger( 'input' );
 													break;
 												}
-											} );
-										break;
-									}
-								}
-								// Otherwise this is a single value
-								else {
-									// Grab the correct :input element for this default value
-									$input = Conductor_Query_Builder_Shortcode_View.$el.find( ':input[id$="' + name + '"]' );
-
-									// Switch based on name
-									switch ( name ) {
-										// Widget Size
-										case 'widget_size':
-											// Grab the correct input element for this default value
-											$input = Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-widget-size-value:checked' );
-										break;
-									}
-
-									// If we have an input element
-									if ( $input.length ) {
-										// Switch the sub-default value from a Boolean false to an empty string
-										default_value = ( typeof default_value === 'boolean' && ! default_value ) ? '' : ( ( typeof default_value === 'boolean' ) ? "true": default_value );
-
-										// If the input value doesn't match the default value
-										if ( $input.val() !== default_value ) {
-											// Reset the input value (trigger a change event for hidden elements)
-											$input.val( default_value ).trigger( 'change' );
-
-											// Switch based on name
-											switch ( name ) {
-												// Widget Size
-												case 'widget_size':
-													// Ensure the correct radio element is checked
-													$input = Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-widget-size-value[id$="' + default_value + '"]' ).trigger( 'change' ).prop( 'checked', true );
-												break;
+											}
+											// Otherwise we don't have an input type
+											else {
+												// Switch based on node name
+												switch ( node_name ) {
+													// Select
+													case 'select':
+														// Set the value (trigger the change event)
+														$this.val( data_default_value ).trigger( 'change' );
+													break;
+												}
 											}
 										}
 									}
-								}
-							} );
+								} );
+
+								// Trigger the change event on the on the Conductor Widget feature type element
+								Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-select-feature-type' ).trigger( 'change' );
+							}
 						}, 1 );
 					}
 				}
@@ -672,6 +645,11 @@ var conductor_query_builder = conductor_query_builder || {};
 		 * This function determines if all meta values are empty.
 		 */
 		isMetaEmpty: function() {
+			// Bail if we're not in the advanced query builder mode
+			if ( window.getUserSetting( conductor_query_builder.user.settings['query-builder'].mode.name ) !== 'advanced' ) {
+				return true;
+			}
+
 			return this.every( function ( model ) {
 				var meta = model.get( 'meta' );
 
@@ -691,6 +669,7 @@ var conductor_query_builder = conductor_query_builder || {};
 		events: {
 			'change .conductor-select-feature-type': 'setHasUserChangedFeatureTypeFlag',
 			'change :input': 'previewQuery',
+			'keyup :input': 'previewQuery',
 			'change .conductor-widget-size-value': 'maybeShowConductorWidgetColumnsSetting'
 		},
 		/**
@@ -730,25 +709,41 @@ var conductor_query_builder = conductor_query_builder || {};
 			this.has_user_changed_feature_type = true;
 		},
 		/**
-		 * This function previews the query; delay 300ms between each preview.
+		 * This function previews the query; delay 400ms between each preview.
 		 */
-		previewQuery: _.debounce( function() {
-			var $document = $( document );
-
-			// Trigger an event on the document
-			$document.trigger( 'conductor-query-builder-preview-query', [ this, $conductor_qb_preview ] );
+		previewQuery: _.debounce( function( event ) {
+			var $document = $( document ),
+				$el = event && $( event.currentTarget );
 
 			// Bail if the shortcode UI is visible
 			if ( this.options.shortcode ) {
 				return;
 			}
 
-			// Set the loading state on the preview element
-			$conductor_qb_preview.addClass( conductor_query_builder.css.classes.loading );
+			// Bail if we have an element and we should skip the query builder preview
+			if ( $el.length && $el.data( 'conductor-query-builder-skip-preview' ) ) {
+				return;
+			}
 
+			// Bail if we have an element, this is a Select2 search field and we should skip the query builder preview
+			if ( $el.length && $el.hasClass( 'select2-search__field' ) && $el.parents( '.select2-container' ).prev( '.conductor-qb-select2' ).data( 'conductor-query-builder-skip-preview' ) ) {
+				return;
+			}
+
+			// Trigger an event on the document
+			$document.trigger( 'conductor-query-builder-preview-query', [ this, $conductor_qb_preview ] );
+
+			// Set the loading state on the preview element
+			$conductor_qb_preview.addClass( conductor_query_builder.css.classes.loading ).html( '' );
+
+			// If we have a current AJAX request
+			if ( this.ajax.current_request ) {
+				// Abort the current request
+				this.ajax.current_request.abort();
+			}
 			// Make the AJAX request (POST)
-			wp.ajax.post( conductor_query_builder.ajax.preview.action, this.ajax.setupAJAXData( conductor_query_builder.ID, conductor_query_builder.ajax.preview.nonce, conductor_query_builder.ajax.preview.action ) ).done( this.ajax.success ).fail( this.ajax.fail );
-		}, 300 ),
+			this.ajax.current_request = wp.ajax.post( conductor_query_builder.ajax.preview.action, this.ajax.setupAJAXData( conductor_query_builder.ID, conductor_query_builder.ajax.preview.nonce, conductor_query_builder.ajax.preview.action ) ).done( this.ajax.success ).fail( this.ajax.fail );
+		}, 400 ),
 		/**
 		 * This function determines if the Conductor Widget columns setting should be displayed.
 		 */
@@ -783,6 +778,7 @@ var conductor_query_builder = conductor_query_builder || {};
 		 * AJAX data and functions.
 		 */
 		ajax: {
+			current_request: false,
 			/**
 			 * This function sets up AJAX data.
 			 */
@@ -837,23 +833,24 @@ var conductor_query_builder = conductor_query_builder || {};
 			 * This function runs on a successful AJAX request.
 			 */
 			success: function( response ) {
+				// Remove the "loading" CSS classes from the query builder preview
+				$conductor_qb_preview.removeClass( conductor_query_builder.css.classes.loading );
+
 				// If we have preview data
 				if ( response.preview ) {
-					// Show the preview (remove loading state)
-					$conductor_qb_preview.removeClass( conductor_query_builder.css.classes.loading ).html( response.preview );
-				}
-				// Otherwise we don't have preview data
-				else {
-					// Remove loading state
-					$conductor_qb_preview.removeClass( conductor_query_builder.css.classes.loading );
+					// Show the preview
+					$conductor_qb_preview.html( response.preview );
 				}
 			},
 			/**
 			 * This function runs on a failed AJAX request.
 			 */
-			fail: function() {
-				// Show the preview error message (remove loading state)
-				$conductor_qb_preview.removeClass( conductor_query_builder.css.classes.loading ).html( conductor_query_builder.l10n.ajax.fail.preview );
+			fail: function( response ) {
+				// If the request wasn't aborted
+				if ( ! response.statusText || response.statusText !== 'abort' ) {
+					// Show the preview error message (remove loading state)
+					$conductor_qb_preview.removeClass( conductor_query_builder.css.classes.loading ).html( conductor_query_builder.l10n.ajax.fail.preview );
+				}
 			}
 		}
 	} );
@@ -881,7 +878,7 @@ var conductor_query_builder = conductor_query_builder || {};
 				'render'
 			);
 
-			// Delay 10ms; new thread
+			// Delay 100ms; new thread
 			setTimeout( function() {
 				// Grab the correct view instance based on options
 				view = ( self.options.shortcode ) ? Conductor_Query_Builder_Shortcode_View : Conductor_Query_Builder_Wrapper_View;
@@ -894,10 +891,10 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// If the new query builder mode is advanced and the current Conductor Widget feature type isn't set to "many"
 				if ( query_builder_mode === 'advanced' && $feature_type.val() !== 'true' ) {
-					// Set the Conductor Widget feature type to "many"
-					$feature_type.val( 'true' );
+					// Set the Conductor Widget feature type to "many" and trigger the "change" event
+					$feature_type.val( 'true' ).trigger( 'change' );
 				}
-			}, 10 );
+			}, 100 );
 		},
 		/**
 		 * This function renders the view.
@@ -1018,22 +1015,28 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// If the new query builder mode is advanced and the current Conductor Widget feature type isn't set to "many"
 			if ( new_mode === 'advanced' && $feature_type.val() !== 'true' ) {
-				// Set the Conductor Widget feature type to "many"
-				$feature_type.val( 'true' );
+				// Set the Conductor Widget feature type to "many" and trigger the "change" event
+				$feature_type.val( 'true' ).trigger( 'change' );
 			}
 			// Otherwise if the query builder mode is simple
 			else if ( new_mode === 'simple' ) {
 				// If the user changed the feature type value
 				if ( view.has_user_changed_feature_type ) {
-					// Set the feature type value to the user selected value
-					$feature_type.val( view.feature_type_value );
+					// Set the feature type value to the user selected value and trigger the "change" event
+					$feature_type.val( view.feature_type_value ).trigger( 'change' );
 				}
 				// Otherwise the user did not change the feature type value
 				else {
-					// Set the feature type value to "one"
-					$feature_type.val( '' );
+					// Set the feature type value to "one" and trigger the "change" event
+					$feature_type.val( '' ).trigger( 'change' );
 				}
 			}
+
+			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view element
+			this.$el.trigger( 'conductor-qb-toggle-query-builder-mode', [ new_mode, previous_mode ] );
+
+			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view
+			this.trigger( 'conductor-qb-toggle-query-builder-mode', new_mode, previous_mode );
 		},
 		/**
 		 * This function removes the loading state from the content wrapper.
@@ -1261,8 +1264,8 @@ var conductor_query_builder = conductor_query_builder || {};
 				}
 				// Otherwise we're just enabling one action button
 				else {
-					// Just enable the action button
-					this.$el.find( selector ).prop( 'disabled', false );
+					// Enable the action button
+					$action_button.prop( 'disabled', false );
 				}
 
 			}
@@ -1285,8 +1288,8 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// If we have an action button
 			if ( $action_button.length ) {
-				// Enable the action button
-				this.$el.find( selector ).prop( 'disabled', true );
+				// Disable the action button
+				$action_button.prop( 'disabled', true );
 			}
 		},
 		/**
@@ -1323,6 +1326,12 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// Set the new mode in the global data
 			conductor_query_builder.user.settings['query-builder'].mode.value = new_mode;
+
+			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view element
+			this.$el.trigger( 'conductor-qb-toggle-query-builder-mode', [ new_mode, previous_mode ] );
+
+			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view
+			this.trigger( 'conductor-qb-toggle-query-builder-mode', new_mode, previous_mode );
 
 			// Call the Conductor Query Builder Backbone View toggle query builder mode function
 			Conductor_Query_Builder_View.toggleQueryBuilderMode( new_mode, previous_mode );
@@ -1584,10 +1593,12 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			var result,
 				clause_group_view_instances = conductor_query_builder.Backbone.instances.views.clauses,
+				clause_action_buttons_view_instances = conductor_query_builder.Backbone.instances.views.clause_action_buttons,
 				view_index,
 				clause_group_type = this.model.get( 'type' ),
 				clause_group_views,
-				count = this.options.count;
+				count = this.options.count,
+				sub_views;
 
 			// Bail if this view should does not allow for removal
 			if ( ! this.options.flags.remove && ! force_remove ) {
@@ -1599,16 +1610,39 @@ var conductor_query_builder = conductor_query_builder || {};
 				this.options.flags.removing = true;
 			}
 
+			// Grab the sub-views
+			sub_views = this.views.all();
+
+			// If we have sub-views
+			if ( sub_views ) {
+				// Loop through the sub-views
+				_.each( sub_views, function( sub_view ) {
+					var sub_view_index;
+
+					// If this is a query builder actions view
+					if ( sub_view.options.type === 'query-builder-actions' ) {
+						// Grab the view index from instances
+						sub_view_index = clause_action_buttons_view_instances.map( function( the_sub_view ) { return the_sub_view.cid; } ).indexOf( sub_view.cid );
+
+						// If we have a view index
+						if ( sub_view_index !== -1 ) {
+							// Remove this view from instances
+							clause_action_buttons_view_instances.splice( sub_view_index, 1 );
+						}
+					}
+				} )
+			}
+
 			// Remove the model from the collection
 			Conductor_Query_Builder_Clause_Group_Collection.remove( this.model );
 
 			// Call (apply) the default wp.Backbone.View remove function
 			result = wp.Backbone.View.prototype.remove.apply( this, arguments );
 
-			// Grab the model index from instances
+			// Grab the view index from instances
 			view_index = clause_group_view_instances.map( function( view ) { return view.cid; } ).indexOf( this.cid );
 
-			// If we have a model index
+			// If we have a view index
 			if ( view_index !== -1 ) {
 				// Remove this view from instances
 				clause_group_view_instances.splice( view_index, 1 );
@@ -1719,12 +1753,14 @@ var conductor_query_builder = conductor_query_builder || {};
 				case 'operators':
 					// If this clause group supports values
 					if ( columns && columns.values ) {
-						// Enable the values select element if the operator is not a Boolean operator
+						// If the operator isn't a Boolean operator
 						if ( $values_select.prop( 'disabled' ) && conductor_query_builder.operators[value] && ( typeof conductor_query_builder.operators[value] === 'string' || ( conductor_query_builder.operators[value].type && conductor_query_builder.operators[value].type !== 'bool' ) ) ) {
+							// Enable the values select element
 							$values_select.prop( 'disabled', false );
 						}
-						// Otherwise disable the values select element if the operator is a Boolean operator TODO: Update comment
+						// Otherwise if the operator is a Boolean operator
 						else if ( ! $values_select.prop( 'disabled' ) && conductor_query_builder.operators[value] && typeof conductor_query_builder.operators[value] !== 'string' && conductor_query_builder.operators[value].type && conductor_query_builder.operators[value].type === 'bool' ) {
+							// Disable the values select element
 							$values_select.prop( 'disabled', true );
 						}
 					}
@@ -1938,6 +1974,7 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// If this option shouldn't exist
 				if ( index === -1 ) {
+					// Remove this element
 					$this.remove();
 
 					// If this option value matches a selected value
@@ -2257,6 +2294,18 @@ var conductor_query_builder = conductor_query_builder || {};
 					select2_args.dropdownParent = $( '#TB_ajaxContent' )
 				}
 
+				// If we have a locale set for Select2
+				if ( conductor_query_builder.select2.language ) {
+					// Set the Select2 language property
+					select2_args.language = conductor_query_builder.select2.language;
+				}
+
+				// If we have a direction set for Select2
+				if ( conductor_query_builder.select2.dir ) {
+					// Set the Select2 direction property
+					select2_args.dir = conductor_query_builder.select2.dir;
+				}
+
 				// If this Select2 element is open
 				if ( Select2 && Select2.isOpen() ) {
 					// Close this Select2 element
@@ -2305,13 +2354,15 @@ var conductor_query_builder = conductor_query_builder || {};
 					case 'operators':
 						// If this clause group supports values
 						if ( columns && columns.values ) {
-							// Enable the values select element if the operator is not a Boolean operator
+							// If the operator isn't a Boolean operator
 							if ( $values_select.prop( 'disabled' ) && conductor_query_builder.operators[value] && ( typeof conductor_query_builder.operators[value] === 'string' || ( conductor_query_builder.operators[value].type && conductor_query_builder.operators[value].type !== 'bool' ) ) ) {
+								// Enable the values select element
 								$values_select.prop( 'disabled', false );
 							}
-							// Otherwise if disable the values select element if the operator is a Boolean operator TODO: Update comment
+							// Otherwise if the operator is a Boolean operator
 							else if ( ! $values_select.prop( 'disabled' ) && conductor_query_builder.operators[value] && typeof conductor_query_builder.operators[value] !== 'string' && conductor_query_builder.operators[value].type && conductor_query_builder.operators[value].type === 'bool' ) {
-								$values_select.prop( 'disabled', false );
+								// Disable the values select element
+								$values_select.prop( 'disabled', true );
 							}
 						}
 
@@ -2393,12 +2444,12 @@ var conductor_query_builder = conductor_query_builder || {};
 				if ( toggle_action_buttons ) {
 					// If we have a selection
 					if ( value && value.length ) {
-						// Trigger the conductor-qb-enable-action-buttons event on the Conductor Query Builder Actions View
+						// Trigger the "conductor-qb-enable-action-buttons" event on the Conductor Query Builder Actions View
 						Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-enable-action-buttons' );
 
 						// Loop through clause group action Backbone Views
 						_.each( conductor_query_builder.Backbone.instances.views.clause_action_buttons, function ( view ) {
-							// Trigger the conductor-qb-enable-action-buttons event on this view
+							// Trigger the "conductor-qb-enable-action-buttons" event on this view
 							view.trigger( 'conductor-qb-enable-action-buttons' );
 						} );
 
@@ -3241,7 +3292,7 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// Bail if we're not in the simple query builder mode
 			if ( window.getUserSetting( conductor_query_builder.user.settings['query-builder'].mode.name ) !== 'simple' ) {
-				return false;
+				return is_query_args_empty;
 			}
 
 			// Loop through all input elements
@@ -3509,6 +3560,12 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// Initialize the query builder Backbone components
 				conductor_query_builder.fn.query_builder.init( true );
+
+				// Trigger the "conductor-qb-shortcode-init" event on the query builder view
+				Conductor_Query_Builder_View.trigger( 'conductor-qb-shortcode-init' );
+
+				// Trigger the "conductor-qb-shortcode-init" event on the query builder view element
+				Conductor_Query_Builder_View.$el.trigger( 'conductor-qb-shortcode-init' );
 			}
 			// Otherwise if we have the Backbone views setup
 			else {
@@ -3520,10 +3577,31 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// Reset the query builder Backbone components
 				conductor_query_builder.fn.query_builder.reset();
+
+				// Call the initialize function on the query builder view
+				Conductor_Query_Builder_View.initialize();
+
+				// Trigger the "conductor-qb-shortcode-reset" event on the query builder view
+				Conductor_Query_Builder_View.trigger( 'conductor-qb-shortcode-reset' );
+
+				// Trigger the "conductor-qb-shortcode-reset" event on the query builder view element
+				Conductor_Query_Builder_View.$el.trigger( 'conductor-qb-shortcode-reset' );
 			}
 
 			// Show the Thickbox
 			tb_show( conductor_query_builder.l10n.shortcode.title, '#TB_inline?inlineId=conductor-qb-shortcode-wrapper-container&width=753&height=480', false );
+
+			// If the query builder mode is set to advanced
+			if ( window.getUserSetting( conductor_query_builder.user.settings['query-builder'].mode.name ) === 'advanced' ) {
+				// Start a new thread; delay 1ms
+				setTimeout( function() {
+					// Loop through clause group action Backbone Views
+					_.each( conductor_query_builder.Backbone.instances.views.clause_action_buttons, function ( view ) {
+						// Show all query builder action button elements
+						view.$el.find( view.action_button_selector ).removeClass( 'hide hidden conductor-qb-hide conductor-qb-hidden' );
+					} );
+				}, 1 );
+			}
 		} );
 
 		// Add an event listener to the thickbox remove event
@@ -3573,7 +3651,7 @@ var conductor_query_builder = conductor_query_builder || {};
 			// If the escape key was pressed
 			if ( event.which === 27 ) {
 				// If we have meta and the confirmation was cancelled
-				if ( ! Conductor_Query_Builder_Sub_Clause_Group_Collection.isMetaEmpty() && ! window.confirm( conductor_query_builder.l10n.shortcode.confirm ) ) {
+				if ( ( ! Conductor_Query_Builder_Sub_Clause_Group_Collection.isMetaEmpty() || ! Conductor_Query_Builder_Shortcode_View.isSimpleQueryArgsEmpty() ) && ! window.confirm( conductor_query_builder.l10n.shortcode.confirm ) ) {
 					// Stop propagation
 					event.stopImmediatePropagation();
 				}

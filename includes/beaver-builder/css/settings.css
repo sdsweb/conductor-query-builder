@@ -60,7 +60,7 @@
 	float: left;
 	border: 1px solid #ccc;
 	border-bottom: none;
-	margin-left: 0.5em; /* half the font size so set the font size properly */
+	margin-left: 0.5em;
 	padding: 5px 10px;
 	font-size: 14px;
 	line-height: 24px;
@@ -295,7 +295,7 @@
 
 .fl-lightbox #fl-builder-settings-tab-conductor-query-builder h4 {
 	font-size: 1em;
-	margin: 1.33em 0;
+	margin: 1em 0;
 }
 
 .fl-lightbox #fl-builder-settings-tab-conductor-query-builder h5 {
@@ -353,7 +353,9 @@
 	/*background: transparent !important;
 	border-color: #aaa !important;*/
 	line-height: inherit;
+	height: auto !important;
 }
+
 
 .fl-builder-settings-fields #fl-builder-settings-tab-conductor-query-builder input[type="text"].conductor-input,
 .fl-builder-settings-fields #fl-builder-settings-tab-conductor-query-builder input[type="number"].conductor-input,
@@ -413,6 +415,10 @@
 }
 
 .fl-lightbox #fl-builder-settings-tab-conductor-query-builder .conductor-widget-output-list li.ui-state-default .editing .conductor-widget-output-element-label-input input {
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-left: 2px;
+	background: transparent;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
@@ -429,6 +435,16 @@
 
 .select2-container--default.select2-container--disabled .select2-selection--multiple input {
 	background: transparent !important;
+}
+
+.fl-lightbox #fl-builder-settings-tab-conductor-query-builder .conductor-widget-setting-with-hide-container input {
+	padding: 5px 30px 5px 5px;
+}
+
+.fl-lightbox #fl-builder-settings-tab-conductor-query-builder .conductor-widget-setting-with-hide-container .conductor-widget-setting-hide {
+	position: absolute;
+	top: 6px;
+	right: 5px;
 }
 
 
@@ -469,4 +485,12 @@
 
 .fl-lightbox #fl-builder-settings-tab-conductor-query-builder .conductor-widget-output-list li.ui-state-default .conductor-widget-output-element-controls .conductor-widget-link {
 	font-size: 15px;
+}
+
+.fl-lightbox #fl-builder-settings-tab-conductor-query-builder .conductor-widget-setting-with-hide-container .dashicons {
+	font-size: 20px;
+}
+
+.fl-lightbox #fl-builder-settings-tab-conductor-query-builder .conductor-widget-setting-with-hide-container .conductor-widget-setting-hide input:checked + label .dashicons {
+	color: #ccc;
 }

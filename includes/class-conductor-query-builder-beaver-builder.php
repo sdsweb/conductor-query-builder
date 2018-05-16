@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Beaver_Builder
  * @author Slocum Studio
- * @version 1.0.3
+ * @version 1.0.4
  * @since 1.0.3
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.3';
+		public $version = '1.0.4';
 
 		/**
 		 * @var string
@@ -33,6 +33,11 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 		 * @var object
 		 */
 		public $wp_widget_factory = false;
+
+		/**
+		 * @var object
+		 */
+		public $pagenum_link = false;
 
 		/**
 		 * @var Conductor, Instance of the class
@@ -58,10 +63,13 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 			// Hooks
 			add_action( 'init', array( $this, 'init' ) ); // Init
 			add_filter( 'sidebars_widgets', array( $this, 'sidebars_widgets' ), 20 ); // Sidebars Widgets
+			add_filter( 'conductor_widget_before_widget_data_attributes', array( $this, 'conductor_widget_before_widget_data_attributes' ), 10, 5 ); // Conductor Widget - Before Widget Data Attributes
+			add_filter( 'conductor_query_builder_widget_before_widget_data_attributes', array( $this, 'conductor_query_builder_widget_before_widget_data_attributes' ), 10, 8 ); // Conductor Query Builder - Widget Before - Widget Data Attributes
 			add_filter( 'conductor_query_builder_populate_values_data', array( $this, 'conductor_query_builder_populate_values_data' ), 10, 2 ); // Conductor Query Builder - Populate Values Data
 			add_filter( 'conductor_query_builder_populate_clause_data', array( $this, 'conductor_query_builder_populate_clause_data' ), 10, 2 ); // Conductor Query Builder - Populate Clause Data
 			add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) ); // WordPress Enqueue Scripts
 			add_filter( 'conductor_query_builder_admin_enqueue_scripts', array( $this, 'conductor_query_builder_admin_enqueue_scripts' ), 10, 4 ); // Conductor Query Builder - Admin Enqueue Scripts
+			add_filter( 'conductor_query_paginate_links_args', array( $this, 'conductor_query_paginate_links_args' ), 10, 4 ); // Conductor - Query - Paginate Links Arguments
 			add_action( 'wp_footer', array( $this, 'wp_footer' ) ); // WordPress Footer
 			add_filter( 'conductor_query_builder_admin_footer', array( $this, 'conductor_query_builder_admin_footer' ), 10, 7 ); // Conductor Query Builder - Admin Footer
 			add_filter( 'fl_builder_module_categories', array( $this, 'fl_builder_module_categories' ) ); // Beaver Builder - Module Categories
@@ -86,6 +94,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 
 			// Register the Conductor Query Builder Beaver Builder module
 			FLBuilder::register_module( 'Conductor_Query_Builder_Beaver_Builder_Module', apply_filters( 'conductor_query_builder_beaver_builder_module_settings', array(
+				// Conductor Query Builder Tab
 				'conductor-query-builder' => array(
 					'title' => __( 'Query Builder', 'conductor-query-builder' ),
 					'file' => Conductor_Query_Builder_Add_On::plugin_dir() . '/includes/beaver-builder/tabs/conductor-query-builder-beaver-builder.php',
@@ -166,6 +175,54 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 		}
 
 		/**
+		 * This function adjusts the Conductor Widget before widget data attributes
+		 */
+		public function conductor_widget_before_widget_data_attributes( $before_widget_data_attrs, $params, $instance, $conductor_widget_settings, $conductor_widget ) {
+			// Bail if Beaver Builder isn't active
+			if ( is_admin() || ! FLBuilderModel::is_builder_active() )
+				return $before_widget_data_attrs;
+
+			// If we don't have a pagenum link on this class
+			if ( ! $this->pagenum_link ) {
+				// Grab the pagenum link
+				$pagenum_link = get_pagenum_link();
+
+				// Grab the pagenum link query arguments
+				parse_str( parse_url( $pagenum_link, PHP_URL_QUERY ), $pagenum_link_query_args );
+
+				// If the pagenum link contains the "fl_builder" query argument
+				if ( array_key_exists( 'fl_builder', $pagenum_link_query_args ) ) {
+					// Remove the "fl_builder" query argument
+					$the_pagenum_link = str_replace( $pagenum_link, remove_query_arg( 'fl_builder', $pagenum_link ), $before_widget_data_attrs['data-pagenum-link'] );
+
+					// Set the pagenum link on this class
+					$this->pagenum_link = $the_pagenum_link;
+				}
+			}
+
+			// If we have a pagenum link on this class
+			if ( $this->pagenum_link )
+				// Set the pagenum link before widget data attribute
+				$before_widget_data_attrs['data-pagenum-link'] = $this->pagenum_link;
+
+			return $before_widget_data_attrs;
+		}
+
+		/**
+		 * This function adjusts the Conductor Query Builder "before_widget" widget data attributes.
+		 */
+		public function conductor_query_builder_widget_before_widget_data_attributes( $before_widget_data_attrs, $number, $widget, $post_id, $type, $query_args, $conductor_widget, $conductor_query_builder ) {
+			// Bail if this isn't a Beaver Builder "widget"
+			if ( $type !== 'beaver-builder' )
+				return $before_widget_data_attrs;
+
+			// Set the widget ID widget data attribute TODO: Future: Convert prefix into a variable?
+			$before_widget_data_attrs['data-query-builder-widget-id'] = 'conductor-query-builder-beaver-builder-' . $number;
+
+			return $before_widget_data_attrs;
+		}
+
+		/**
 		 * This function adjusts whether or not the Conductor Query Builder values data should be populated
 		 */
 		public function conductor_query_builder_populate_values_data( $populate_values_data, $conductor_query_builder ) {
@@ -224,6 +281,63 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 			$enqueue_scripts_and_styles = true;
 
 			return $enqueue_scripts_and_styles;
+		}
+
+		/**
+		 * This function adjusts Conductor query paginate_links() arguments.
+		 */
+		public function conductor_query_paginate_links_args( $paginate_links_args, $query, $echo, $conductor_query ) {
+			// Bail if Beaver Builder isn't active
+			if ( is_admin() || ! FLBuilderModel::is_builder_active() )
+				return $paginate_links_args;
+
+			// If we don't have a pagenum link on this class
+			if ( ! $this->pagenum_link ) {
+				// Grab the pagenum link
+				$pagenum_link = get_pagenum_link();
+
+				// Grab the pagenum link query arguments
+				parse_str( parse_url( $pagenum_link, PHP_URL_QUERY ), $pagenum_link_query_args );
+
+				// If the pagenum link contains the "fl_builder" query argument
+				if ( array_key_exists( 'fl_builder', $pagenum_link_query_args ) ) {
+					// Remove the "fl_builder" query argument
+					$the_pagenum_link = str_replace( $pagenum_link, remove_query_arg( 'fl_builder', $pagenum_link ), $paginate_links_args['base'] );
+
+					// Set the pagenum link on this class
+					$this->pagenum_link = $the_pagenum_link;
+				}
+			}
+
+			// If we have a pagenum link on this class
+			if ( $this->pagenum_link ) {
+				// Set the base URL
+				$paginate_links_args['base'] = $this->pagenum_link;
+
+				// Hook into "get_pagenum_link"
+				add_filter( 'get_pagenum_link', array( $this, 'get_pagenum_link' ) );
+			}
+
+			return $paginate_links_args;
+		}
+
+		/**
+		 * This function adjusts the pagenum link.
+		 */
+		public function get_pagenum_link( $pagenum_link ) {
+			// Remove this hook
+			remove_filter( 'get_pagenum_link', array( $this, 'get_pagenum_link' ) );
+
+			// Bail if we don't have a pagenum link on this class
+			if ( ! $this->pagenum_link )
+				return $pagenum_link;
+
+			// Set the pagenum link
+			$pagenum_link = $this->pagenum_link;
+
+			// TODO: Future: Reset the pagenum link on this class?
+
+			return $pagenum_link;
 		}
 
 		/**

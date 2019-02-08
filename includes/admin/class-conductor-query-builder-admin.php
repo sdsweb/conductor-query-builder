@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Admin
  * @author Slocum Studio
- * @version 1.0.0
+ * @version 1.0.5
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.0';
+		public $version = '1.0.5';
 
 		/**
 		 * @var string
@@ -114,7 +114,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Admin' ) ) {
 			$sub_menu_page_slug = self::$sub_menu_page_slug = self::$sub_menu_page_slug_prefix . $conductor_query_builder->post_type_name;
 
 			// Conductor Query Builder Post Type Page
-			self::$sub_menu_page = add_submenu_page( $conductor_admin_options_menu_page, $conductor_query_builder->post_type_object->labels->name, $conductor_query_builder->post_type_object->labels->name, 'manage_options', $sub_menu_page_slug );
+			self::$sub_menu_page = add_submenu_page( $conductor_admin_options_menu_page, $conductor_query_builder->post_type_object->labels->name, $conductor_query_builder->post_type_object->labels->name, Conductor::$capability, $sub_menu_page_slug );
 
 			return self::$sub_menu_page;
 		}

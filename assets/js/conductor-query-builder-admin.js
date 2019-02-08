@@ -964,11 +964,13 @@ var conductor_query_builder = conductor_query_builder || {};
 				conductor_query_builder.meta[type] = [];
 			} );
 
+			// TODO: Transition to "conductor-query-builder-{event}" event name
 			// Trigger the conductor-qb-disable-action-buttons event on the Conductor Query Builder Actions View
 			Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-disable-action-buttons' );
 
 			// Loop through clause group action Backbone Views
 			_.each( conductor_query_builder.Backbone.instances.views.clause_action_buttons, function ( view ) {
+				// TODO: Transition to "conductor-query-builder-{event}" event name
 				// Trigger the conductor-qb-disable-action-buttons event on this view
 				view.trigger( 'conductor-qb-disable-action-buttons' );
 			} );
@@ -1032,9 +1034,11 @@ var conductor_query_builder = conductor_query_builder || {};
 				}
 			}
 
+			// TODO: Transition to "conductor-query-builder-{event}" event name
 			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view element
 			this.$el.trigger( 'conductor-qb-toggle-query-builder-mode', [ new_mode, previous_mode ] );
 
+			// TODO: Transition to "conductor-query-builder-{event}" event name
 			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view
 			this.trigger( 'conductor-qb-toggle-query-builder-mode', new_mode, previous_mode );
 		},
@@ -1327,9 +1331,11 @@ var conductor_query_builder = conductor_query_builder || {};
 			// Set the new mode in the global data
 			conductor_query_builder.user.settings['query-builder'].mode.value = new_mode;
 
+			// TODO: Transition to "conductor-query-builder-{event}" event name
 			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view element
 			this.$el.trigger( 'conductor-qb-toggle-query-builder-mode', [ new_mode, previous_mode ] );
 
+			// TODO: Transition to "conductor-query-builder-{event}" event name
 			// Trigger the "conductor-qb-toggle-query-builder-mode" on the view
 			this.trigger( 'conductor-qb-toggle-query-builder-mode', new_mode, previous_mode );
 
@@ -2444,11 +2450,13 @@ var conductor_query_builder = conductor_query_builder || {};
 				if ( toggle_action_buttons ) {
 					// If we have a selection
 					if ( value && value.length ) {
+						// TODO: Transition to "conductor-query-builder-{event}" event name
 						// Trigger the "conductor-qb-enable-action-buttons" event on the Conductor Query Builder Actions View
 						Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-enable-action-buttons' );
 
 						// Loop through clause group action Backbone Views
 						_.each( conductor_query_builder.Backbone.instances.views.clause_action_buttons, function ( view ) {
+							// TODO: Transition to "conductor-query-builder-{event}" event name
 							// Trigger the "conductor-qb-enable-action-buttons" event on this view
 							view.trigger( 'conductor-qb-enable-action-buttons' );
 						} );
@@ -2694,22 +2702,26 @@ var conductor_query_builder = conductor_query_builder || {};
 			if ( toggle_action_buttons ) {
 				// If we have a selection
 				if ( value && value.length ) {
+					// TODO: Transition to "conductor-query-builder-{event}" event name
 					// Trigger the conductor-qb-enable-action-buttons event on the Conductor Query Builder Actions View
 					Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-enable-action-buttons' );
 
 					// Loop through clause group action Backbone Views
 					_.each( conductor_query_builder.Backbone.instances.views.clause_action_buttons, function ( view ) {
+						// TODO: Transition to "conductor-query-builder-{event}" event name
 						// Trigger the conductor-qb-enable-action-buttons event on this view
 						view.trigger( 'conductor-qb-enable-action-buttons' );
 					} );
 				}
 				// Otherwise we don't have a selection
 				else {
+					// TODO: Transition to "conductor-query-builder-{event}" event name
 					// Trigger the conductor-qb-disable-action-buttons event on the Conductor Query Builder Actions View
 					Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-disable-action-buttons' );
 
 					// Loop through clause group action Backbone Views
 					_.each( conductor_query_builder.Backbone.instances.views.clause_action_buttons, function ( view ) {
+						// TODO: Transition to "conductor-query-builder-{event}" event name
 						// Trigger the conductor-qb-disable-action-buttons event on this view
 						view.trigger( 'conductor-qb-disable-action-buttons' );
 					} );
@@ -3555,15 +3567,20 @@ var conductor_query_builder = conductor_query_builder || {};
 
 			// If we don't already have the Backbone views setup
 			if ( ! Conductor_Query_Builder_Shortcode_View ) {
+				// Add our custom CSS class to the body element
+				$body.addClass( 'conductor-shortcode-ui-initialized' );
+
 				// Initialize the shortcode Backbone components
 				conductor_query_builder.fn.shortcode.init();
 
 				// Initialize the query builder Backbone components
 				conductor_query_builder.fn.query_builder.init( true );
 
+				// TODO: Transition to "conductor-query-builder-{event}" event name
 				// Trigger the "conductor-qb-shortcode-init" event on the query builder view
 				Conductor_Query_Builder_View.trigger( 'conductor-qb-shortcode-init' );
 
+				// TODO: Transition to "conductor-query-builder-{event}" event name
 				// Trigger the "conductor-qb-shortcode-init" event on the query builder view element
 				Conductor_Query_Builder_View.$el.trigger( 'conductor-qb-shortcode-init' );
 			}
@@ -3581,12 +3598,17 @@ var conductor_query_builder = conductor_query_builder || {};
 				// Call the initialize function on the query builder view
 				Conductor_Query_Builder_View.initialize();
 
+				// TODO: Transition to "conductor-query-builder-{event}" event name
 				// Trigger the "conductor-qb-shortcode-reset" event on the query builder view
 				Conductor_Query_Builder_View.trigger( 'conductor-qb-shortcode-reset' );
 
+				// TODO: Transition to "conductor-query-builder-{event}" event name
 				// Trigger the "conductor-qb-shortcode-reset" event on the query builder view element
 				Conductor_Query_Builder_View.$el.trigger( 'conductor-qb-shortcode-reset' );
 			}
+
+			// Trigger an event on the document
+			$document.trigger( 'conductor-query-builder-thickbox-init', [ Conductor_Query_Builder_Shortcode_View, Conductor_Query_Builder_View ] );
 
 			// Show the Thickbox
 			tb_show( conductor_query_builder.l10n.shortcode.title, '#TB_inline?inlineId=conductor-qb-shortcode-wrapper-container&width=753&height=480', false );
@@ -3619,6 +3641,9 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// Reset the query builder Conductor widget components
 				conductor_query_builder.fn.conductor.widget.reset();
+
+				// Trigger an event on the document
+				$document.trigger( 'conductor-query-builder-thickbox-removed', [ Conductor_Query_Builder_Shortcode_View, Conductor_Query_Builder_View ] );
 
 				// Remove our custom CSS class to the body element (delay 1ms; new thread)
 				setTimeout( function() {

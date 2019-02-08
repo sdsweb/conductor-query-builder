@@ -85,7 +85,7 @@
 			// Bind "this" to all functions
 			_.bindAll(
 				this,
-				'conductorWidgetAJAXSetupData',
+				'conductorWidgetAJAXSetupData'
 			);
 
 			/*

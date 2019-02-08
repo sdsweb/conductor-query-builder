@@ -3,11 +3,11 @@
  * Plugin Name: Conductor - Query Builder Add-On
  * Plugin URI: https://www.conductorplugin.com/
  * Description: The Conductor Query Builder add-on allows you to craft more complex queries with Conductor. The add-on has a simple view, and a builder view, which are usable in a shortcode for any page or post within your WordPress website.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Slocum Studio
  * Author URI: https://www.slocumstudio.com/
  * Requires at least: 4.4
- * Tested up to: 4.9.5
+ * Tested up to: 5.0.3
  * License: GPL2+
  *
  * Text Domain: conductor-query-builder
@@ -23,7 +23,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 		/**
 		 * @var string
 		 */
-		public static $version = '1.0.4';
+		public static $version = '1.0.5';
 
 		/**
 		 * @var Conductor_Updates, Instance of the Conductor Updates class
@@ -66,6 +66,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Add_On' ) ) {
 			include_once 'includes/class-conductor-query-builder.php' ; // Conductor Query Builder Class
 			include_once 'includes/admin/class-conductor-query-builder-admin.php' ; // Conductor Query Builder Admin Class
 			include_once 'includes/class-conductor-query-builder-conductor-rest-api.php'; // Conductor Query Builder Conductor REST API Class
+			include_once 'includes/class-conductor-query-builder-gutenberg.php'; // Conductor Query Builder Gutenberg Class
 			include_once 'includes/class-conductor-query-builder-toolbar.php'; // Conductor Query Builder Toolbar (Admin Bar) Class
 
 			// Beaver Builder

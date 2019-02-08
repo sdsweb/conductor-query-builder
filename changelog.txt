@@ -2,9 +2,22 @@
 Plugin: Conductor Query Builder Add-On
 Author: Slocum Themes/Slocum Design Studio
 Author URI: https://conductorplugin.com/
-Current Version: 1.0.4
+Current Version: 1.0.5
 ==========================================
 
+
+1.0.5 // February 01 2019
+-------------------------
+- Added Conductor Gutenberg block
+- Fixed a bug where scripts and styles on the front-end weren't enqueued properly when a Conductor Widget
+  wasn't active (in use)
+- Adjusted logic to check for the Conductor capability (using Conductor::$capability)
+- Added Conductor_Query_Builder() instance as a new argument on the "conductor_query_builder_postmeta_form_limit" filter
+- Fixed a bug where the maximum number of posts (Conductor Widget "max_num_posts" setting) was set to the posts per page
+  option (which is the Conductor Widget default) when the query builder mode is set to "advanced" which resulted in
+  incorrect pagination after the number posts per page was met
+-- Note: To limit the maximum number of posts displayed when the query builder mode is set to "advanced", use the
+   "Maximum Number of Posts" parameter in the "Limit" clause group
 
 1.0.4 // May 02 2018
 --------------------

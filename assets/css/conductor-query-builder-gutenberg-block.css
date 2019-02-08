@@ -1,0 +1,37 @@
+/**
+ * Conductor Query Builder Gutenberg Block
+ */
+
+.wp-block-conductor-query-builder-conductor .wp-block-conductor-query-builder-conductor-query-id {
+	width: 100%;
+}
+
+.wp-block-conductor-query-builder-conductor .wp-block-conductor-query-builder-conductor-no-queries {
+	padding-right: 1em;
+	font-size: 0.9em;
+}
+
+.wp-block-conductor-query-builder-conductor .wp-block-conductor-query-builder-conductor-no-queries + .wp-block-conductor-query-builder-conductor-edit-query {
+	margin-top: 1em;
+	vertical-align: top;
+}
+
+
+/*
+ * Inspector Controls
+ */
+
+p.description.wp-block-conductor-query-builder-conductor-edit-query-panel-body-description {
+	margin: 0 0 1em;
+}
+
+.wp-block-conductor-query-builder-conductor-edit-query {
+	box-shadow: inset 0 0 0 1px #efefef, inset 0 0 0 2px #fff, 0 1px 1px rgba(25, 30, 35, 0.1);
+}
+
+.wp-block-conductor-query-builder-conductor-edit-query-label {
+	height: 20px;
+	display: inline-block;
+	line-height: 20px;
+	vertical-align: middle;
+}

@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Toolbar
  * @author Slocum Studio
- * @version 1.0.0
+ * @version 1.0.5
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Toolbar' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.0';
+		public $version = '1.0.5';
 
 		/**
 		 * @var Conductor, Instance of the class
@@ -48,8 +48,8 @@ if ( ! class_exists( 'Conductor_Query_Builder_Toolbar' ) ) {
 		 * This function runs when the admin bar is initialized and adds a Conductor node.
 		 */
 		public function admin_bar_menu( $wp_admin_bar ) {
-			// Bail if the current user is not an administrator
-			if ( ! current_user_can( 'manage_options' ) )
+			// Bail if the current user doesn't have the Conductor capability
+			if ( ! current_user_can( Conductor::$capability ) )
 				return;
 
 			// Grab the Conductor Admin menu page slug

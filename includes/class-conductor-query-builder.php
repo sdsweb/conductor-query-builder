@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder
  * @author Slocum Studio
- * @version 1.0.4
+ * @version 1.0.5
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.4';
+		public $version = '1.0.5';
 
 		/**
 		 * @var string
@@ -1397,7 +1397,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					$post_type_object = $post_type_object->label;
 
 				// Clauses - WHERE Meta (Custom Field)
-				$limit = apply_filters( 'conductor_query_builder_postmeta_form_limit', apply_filters( 'postmeta_form_limit', 9999, $this ) );
+				$limit = apply_filters( 'conductor_query_builder_postmeta_form_limit', apply_filters( 'postmeta_form_limit', 9999, $this ), $this );
 				$custom_fields = $wpdb->get_col(
 					$wpdb->prepare(
 						"SELECT meta_key FROM $wpdb->postmeta GROUP BY meta_key ORDER BY meta_key LIMIT %d",
@@ -1595,9 +1595,18 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// Grab the Conductor Widget instance
 			$conductor_widget = Conduct_Widget();
 
-			// Add our temporary sidebar with a mock Conductor Widget (this ensures Conductor scripts and styles are enqueued)
+			// Grab the Conductor Query Builder Widget instance
+			$conductor_query_builder_widget = Conduct_Query_Builder_Widget();
+
+			/*
+			 * Add our temporary sidebar.
+			 *
+			 * Insert a mock Conductor Widget and a mock Conductor Query Builder Widget. This ensures
+			 * that Conductor and Conductor Query Builder scripts and styles are enqueued.
+			 */
 			$sidebars_widgets[$this->temporary_sidebar_id] = array(
-				$conductor_widget->id_base . '-0'
+				$conductor_widget->id_base . '-0',
+				$conductor_query_builder_widget->id_base . '-0'
 			);
 
 			return $sidebars_widgets;
@@ -1695,6 +1704,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 * License: MIT License
 			 * Copyright: Zeno Rocha, http://zenorocha.com/
 			 */
+			// TODO: Future: Depreciate in favor of Conductor script
+			// TODO: ^ When doing this: new Clipboard() changes to new ClipboardJS()
 			wp_enqueue_script( 'conductor-query-builder-clipboard', Conductor_Query_Builder_Add_On::plugin_url() . '/assets/js/clipboard/clipboard.min.js', false, Conductor_Query_Builder_Add_On::$version, true );
 			wp_localize_script( 'conductor-query-builder-clipboard', 'conductor_qb_clipboard', array(
 				// Localization
@@ -1768,7 +1779,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					'query' => array(
 						'select' => _x( '&mdash; Select a Query &mdash;', 'label for selecting a query', 'conductor-query-builder' ),
 						'no_title' => __( '(no title)', 'conductor-query-builder' ),
-						'none' => _x( 'We weren\'t able to find any existing queries. You can create a query with the query builder the "Create" tab.', 'label for no queries', 'conductor-query-builder' ),
+						'none' => _x( 'We weren\'t able to find any existing queries. You can create a query with the query builder the "Create" tab.', 'label for no queries', 'conductor-query-builder' )
 					),
 					'shortcode' => array(
 						'add' => _x( '+', 'label for shortcode add', 'conductor-query-builder' ),
@@ -2018,7 +2029,6 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							}, 2500 );
 						} )( $el );
 					} );
-
 				} )( window.navigator, jQuery, window.conductor_qb_clipboard );
 				// ]]>
 			</script>
@@ -3004,7 +3014,14 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 					<div id="conductor-qb-shortcode-tabs-wrapper" class="conductor-qb-tabs-wrapper conductor-qb-shortcode-tabs-wrapper">
 						<h2 class="nav-tab-wrapper current conductor-qb-tabs conductor-qb-shortcode-tabs">
 							<a class="nav-tab nav-tab-active" href="#conductor-qb-shortcode-insert-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="insert"><?php _e( 'Insert', 'conductor-query-builder' ); ?></a>
-							<a class="nav-tab" href="#conductor-qb-shortcode-output-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="create"><?php _e( 'Create', 'conductor-query-builder' ); ?></a>
+							<?php
+								// If the current user has the Conductor capability
+								if ( current_user_can( Conductor::$capability ) ) :
+							?>
+									<a class="nav-tab" href="#conductor-qb-shortcode-output-tab-content" data-type="conductor-qb-shortcode" data-shortcode-action="create"><?php _e( 'Create', 'conductor-query-builder' ); ?></a>
+							<?php
+								endif;
+							?>
 						</h2>
 					</div>
 
@@ -3020,7 +3037,10 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							/*
 							 * Shortcode Create Query Builder
 							 */
-							Conductor_Query_Builder_Admin_Views::shortcode_query_builder_create_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget, $form_element );
+
+							// If the current user has the Conductor capability
+							if ( current_user_can( Conductor::$capability ) )
+								Conductor_Query_Builder_Admin_Views::shortcode_query_builder_create_tab_content( $post, $post_meta, $this, $conductor_widget_instance, $conductor_widget, $form_element );
 						?>
 					</div>
 
@@ -3119,6 +3139,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				$offset = ( isset( $query_args['offset'] ) ) ? $query_args['offset'] : 0;
 
 				// Grab the maximum number of pages
+				// TODO: In some cases (i.e. custom data types) the publish post count may not exist
 				$max_num_pages = ( ! isset( $this->current_query_args['max_num_posts'] ) ) ? ceil( ( $post_counts->publish - $offset ) / $query_args['posts_per_page'] ) : ceil( $this->current_query_args['max_num_posts'] / $query_args['posts_per_page'] ) ;
 
 				// Set the maximum number of pages _conductor query argument
@@ -3269,8 +3290,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				wp_send_json_error( $status );
 			}
 
-			// Return an error if the current user can't edit posts
-			if ( ! current_user_can( 'edit_posts' ) ) {
+			// Return an error if the current user can't edit posts or the current user doesn't have the Conductor capability
+			if ( ! current_user_can( 'edit_posts' ) || ! current_user_can( Conductor::$capability ) ) {
 				$status['error'] = __( 'You do not have sufficient permissions to create a query on this site.', 'conductor' );
 				wp_send_json_error( $status );
 			}
@@ -3949,8 +3970,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// Feature Many
 			$simple_conductor_query_builder_data['feature_many'] = ( ! isset( $simple_conductor_query_builder_data['post_id'] ) ) ? 'true' : '';
 
-			// Maximum number of posts (default to posts_per_page option value to remain consistent with Conductor)
-			$simple_conductor_query_builder_data['max_num_posts'] = ( isset( $simple_conductor_query_builder_data['max_num_posts'] ) ) ? $simple_conductor_query_builder_data['max_num_posts'] : get_option( 'posts_per_page' );
+			// Maximum number of posts
+			$simple_conductor_query_builder_data['max_num_posts'] = ( isset( $simple_conductor_query_builder_data['max_num_posts'] ) ) ? $simple_conductor_query_builder_data['max_num_posts'] : ( ( $query_builder_mode === 'advanced' ) ? '' : get_option( 'posts_per_page' ) );
+
 
 			// If the query builder mode is advanced
 			if ( $query_builder_mode === 'advanced' ) {

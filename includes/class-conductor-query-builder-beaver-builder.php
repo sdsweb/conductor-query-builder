@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder_Beaver_Builder
  * @author Slocum Studio
- * @version 1.0.4
+ * @version 1.0.5
  * @since 1.0.3
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.4';
+		public $version = '1.0.5';
 
 		/**
 		 * @var string
@@ -302,7 +302,7 @@ if ( ! class_exists( 'Conductor_Query_Builder_Beaver_Builder' ) ) {
 				// If the pagenum link contains the "fl_builder" query argument
 				if ( array_key_exists( 'fl_builder', $pagenum_link_query_args ) ) {
 					// Remove the "fl_builder" query argument
-					$the_pagenum_link = str_replace( $pagenum_link, remove_query_arg( 'fl_builder', $pagenum_link ), $paginate_links_args['base'] );
+					$the_pagenum_link = str_replace( $pagenum_link, remove_query_arg( 'fl_builder', $pagenum_link ), $pagenum_link );
 
 					// Set the pagenum link on this class
 					$this->pagenum_link = $the_pagenum_link;

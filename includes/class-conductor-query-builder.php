@@ -4,7 +4,7 @@
  *
  * @class Conductor_Query_Builder
  * @author Slocum Studio
- * @version 1.0.5
+ * @version 1.0.6
  * @since 1.0.0
  */
 
@@ -17,7 +17,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.5';
+		public $version = '1.0.6';
 
 		/**
 		 * @var string
@@ -411,7 +411,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 * 		  parameter specifies which operators allow multiple values to be selected.
 			 * 		- The 'unique' parameter is configured as an array - array values are valid operators. This
 			 * 		  parameter specifies which operators allow unique values to be selected. For example, if
-			 * 		  multiple sub-clause groups exist for a particular parameter (i.e. 'author') one of the
+			 * 		  multiple sub-clause groups exist for a particular parameter (e.g. 'author') one of the
 			 * 		  sub-clause groups contains a unique operator, the first sub-clause group is kept and the
 			 * 		  other sub-clause groups are removed during sanitization.
 			 *
@@ -426,9 +426,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			 * 		  specified which specifies that the configuration array data pertains to the nested 'compare'
 			 * 		  field within the 'meta_query' argument.
 			 *
-			 * Note: If the 'types' parameter is not specified, all data is sanitized via sanitize_text_field().
+			 * Note: If the 'type' parameter is not specified, all data is sanitized via sanitize_text_field().
 			 */
-			// TODO: Future: Group these by query type (i.e. WP_Query or similar)?
+			// TODO: Future: Group these by query type (e.g. WP_Query or similar)?
 			// TODO: Future: Comment all relevant properties below
 			$this->parameters = apply_filters( 'conductor_query_builder_parameters', array(
 				// WHERE
@@ -718,6 +718,8 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// If we're in the admin on a page that supports the Conductor Query Builder or doing an AJAX request
 			if ( apply_filters( 'conductor_query_builder_populate_values_data', ( ( is_admin() && in_array( $pagenow, array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' ) ) ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ), $this ) ) {
 				$this->values = array(
+					// All - All parameters
+					'all' => array(),
 					// WHERE
 					'author' => array(),
 					'author_name' => array(),
@@ -748,6 +750,12 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 						'tag' => array()
 					)
 				);
+
+				// Add the "any" post status to the post status
+				$this->values['post_status'][] = 'any';
+
+				// Add the "inherit" post status to the post status
+				$this->values['post_status'][] = 'inherit';
 
 				// Sort post status by natural order
 				natcasesort( $this->values['post_status'] );
@@ -1012,7 +1020,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								'sub_clause_groups' => false,
 								// Allow removal
 								'remove' => false,
-								// Ignore descriptive labels (i.e. AND and OR labels)
+								// Ignore descriptive labels (e.g. AND and OR labels)
 								'ignore_descriptive_labels' => true,
 								// Allow actions
 								'actions' => true
@@ -1070,7 +1078,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							),
 							// Flags
 							'flags' => array(
-								// Ignore descriptive labels (i.e. AND and OR labels)
+								// Ignore descriptive labels (e.g. AND and OR labels)
 								'ignore_descriptive_labels' => true
 							),
 							// Title
@@ -1229,7 +1237,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							),
 							// Flags
 							'flags' => array(
-								// Ignore descriptive labels (i.e. AND and OR labels)
+								// Ignore descriptive labels (e.g. AND and OR labels)
 								'ignore_descriptive_labels' => true
 							),
 							// Title
@@ -1371,7 +1379,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 							),
 							// Flags
 							'flags' => array(
-								// Ignore descriptive labels (i.e. AND and OR labels)
+								// Ignore descriptive labels (e.g. AND and OR labels)
 								'ignore_descriptive_labels' => true
 							),
 							// Title
@@ -1393,8 +1401,11 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				);
 
 				// Clauses - FROM
-				foreach ( $this->clauses['from']['parameters'] as &$post_type_object )
-					$post_type_object = $post_type_object->label;
+				foreach ( $this->clauses['from']['parameters'] as $post_type => &$post_type_object )
+					$post_type_object = array(
+						'value' => $post_type,
+						'label' => $post_type_object->label
+					);
 
 				// Clauses - WHERE Meta (Custom Field)
 				$limit = apply_filters( 'conductor_query_builder_postmeta_form_limit', apply_filters( 'postmeta_form_limit', 9999, $this ), $this );
@@ -1430,6 +1441,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 
 				// If we have non-built-in taxonomies
 				if ( ! empty( $taxonomies ) )
+					// TODO: Future: Sort taxonomies naturally here before adding taxonomies
 					// Loop through them
 					foreach ( $taxonomies as $taxonomy => $taxonomy_obj ) {
 						// TODO: _x()
@@ -2447,7 +2459,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 													break;
 
 													// Values
-													// TODO: We need to ensure BETWEEN/NOT BETWEEN (and other operators) 'limit' parameter is utilized here, keep the first two values
+													// TODO: We need to ensure BETWEEN/NOT BETWEEN (and other operators) 'limit' parameter is utilized here, keep the first?|last? two values
 													case 'values':
 														// If we have field data
 														if ( ! empty( $field_data ) ) {
@@ -2732,7 +2744,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 										// Loop through the query argument values
 										foreach ( $query_arg_value as $query_arg_parameter => $query_arg_parameter_value )
 											// If this query argument parameter value exists in our query argument operators
-											if ( isset( $this->query_args_operators[$query_arg_parameter_value] ) )
+											if ( ! is_array( $query_arg_parameter_value ) && isset( $this->query_args_operators[$query_arg_parameter_value] ) )
 												// Set the value to the query argument operator value
 												$clause_type_query_args[$query_arg][$query_arg_parameter] = $this->query_args_operators[$query_arg_parameter_value];
 									}
@@ -2800,7 +2812,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 								$parameter = ( isset( $parameters_data['operators'] ) && ! empty( $parameters_data['operators'] ) && isset( $sub_clause_group_data['operators'] ) && ! empty( $sub_clause_group_data['operators'] ) ) ? array_search( $sub_clause_group_data['operators'], $parameters_data['operators'] ) : false;
 								$parameter = ( ! $parameter || is_int( $parameter ) ) ? $parameters : $parameter;
 
-								$clause_type_query_args[$parameter] = ( isset( $parameters_data['multiple'] ) && ! empty( $parameters_data['multiple'] ) && isset( $sub_clause_group_data['operators'] ) && ! empty( $sub_clause_group_data['operators'] ) && in_array( $sub_clause_group_data['operators'], $parameters_data['multiple'] ) ) ? $sub_clause_group_data[$values_key] : ( ( is_array( $sub_clause_group_data[$values_key] ) ) ? end( $sub_clause_group_data[$values_key] ) : ( ( isset( $sub_clause_group_data[$values_key] ) ) ? $sub_clause_group_data[$values_key] : false ) );
+								$clause_type_query_args[$parameter] = ( isset( $parameters_data['multiple'] ) && ! empty( $parameters_data['multiple'] ) && isset( $sub_clause_group_data['operators'] ) && ! empty( $sub_clause_group_data['operators'] ) && in_array( $sub_clause_group_data['operators'], $parameters_data['multiple'] ) ) ? $sub_clause_group_data[$values_key] : ( ( isset( $sub_clause_group_data[$values_key] ) && is_array( $sub_clause_group_data[$values_key] ) ) ? end( $sub_clause_group_data[$values_key] ) : ( ( isset( $sub_clause_group_data[$values_key] ) ) ? $sub_clause_group_data[$values_key] : false ) );
 
 								// If the parameter value is an operator and it's Boolean use the Boolean value
 								if ( array_key_exists( $parameter, $this->operators ) && is_array( $this->operators[$parameter] ) && isset( $this->operators[$parameter]['type'] ) && $this->operators[$parameter]['type'] === 'bool' )
@@ -3139,7 +3151,7 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 				$offset = ( isset( $query_args['offset'] ) ) ? $query_args['offset'] : 0;
 
 				// Grab the maximum number of pages
-				// TODO: In some cases (i.e. custom data types) the publish post count may not exist
+				// TODO: In some cases (e.g. custom data types) the publish post count may not exist
 				$max_num_pages = ( ! isset( $this->current_query_args['max_num_posts'] ) ) ? ceil( ( $post_counts->publish - $offset ) / $query_args['posts_per_page'] ) : ceil( $this->current_query_args['max_num_posts'] / $query_args['posts_per_page'] ) ;
 
 				// Set the maximum number of pages _conductor query argument
@@ -3263,7 +3275,9 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			if ( ! $this->doing_preview || ( is_admin() && $query->have_posts() ) )
 				return;
 		?>
-			<p class="conductor-qb-preview-no-results conductor-qb-preview-no-posts"><strong><?php _e( 'This query returned no results. Please adjust your query and try again.', 'conductor-query-builder' ); ?></strong></p>
+			<p class="conductor-qb-preview-no-results conductor-qb-preview-no-posts">
+				<strong><?php _e( 'This query returned no results. Please adjust your query and try again.', 'conductor-query-builder' ); ?></strong>
+			</p>
 		<?php
 		}
 
@@ -4060,10 +4074,15 @@ if ( ! class_exists( 'Conductor_Query_Builder' ) ) {
 			// Post meta
 			$post_meta = ( empty( $post_meta ) ) ? $this->get_post_meta( $post_id ) : $post_meta;
 
+			// TODO: Future:
+			// TODO: Need to check action buttons config here based on current value
+			// TODO: ^ For Ninja Forms, we always want to disable the WHERE TAX QUERY button
+
 			// If this clause type has a limit
 			if ( isset( $this->clauses[$clause_type]['config']['limit'] ) && $this->clauses[$clause_type]['config']['limit'] > 0 )
 				// If we have post meta set for this clause type and we've met the limit
 				if ( isset( $post_meta[$clause_type] ) && ! empty( $post_meta[$clause_type] ) && count( $post_meta[$clause_type] ) < $this->clauses[$clause_type]['config']['limit'] )
+					// Reset the disabled flag
 					$ret = false;
 
 			return $ret;

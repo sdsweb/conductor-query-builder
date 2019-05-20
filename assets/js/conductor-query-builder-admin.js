@@ -290,7 +290,6 @@ var conductor_query_builder = conductor_query_builder || {};
 							// Grab the Conductor Widget input elements
 							$conductor_widget_inputs = Conductor_Query_Builder_Shortcode_View.$el.find( '.conductor-widget-setting :input' );
 
-
 							// If we have Conductor Widget input elements
 							if ( $conductor_widget_inputs.length ) {
 								// Loop through the Conductor Widget input elements
@@ -534,6 +533,7 @@ var conductor_query_builder = conductor_query_builder || {};
 	conductor_query_builder.Backbone.Models.Query_Builder_Sub_Clause_Group = Backbone.Model.extend( {
 		defaults: {
 			columns: false,
+			config: {},
 			flags: [],
 			meta: _.clone( conductor_query_builder.Backbone.defaults.meta ),
 			operators: [],
@@ -720,13 +720,13 @@ var conductor_query_builder = conductor_query_builder || {};
 				return;
 			}
 
-			// Bail if we have an element and we should skip the query builder preview
-			if ( $el.length && $el.data( 'conductor-query-builder-skip-preview' ) ) {
+			// Bail if we have an element, this isn't a Conductor Query Builder Select2  field, and we should skip the query builder preview
+			if ( $el && $el.length && ! $el.hasClass( 'conductor-qb-select2' ) && $el.data( 'conductor-query-builder-skip-preview' ) ) {
 				return;
 			}
 
 			// Bail if we have an element, this is a Select2 search field and we should skip the query builder preview
-			if ( $el.length && $el.hasClass( 'select2-search__field' ) && $el.parents( '.select2-container' ).prev( '.conductor-qb-select2' ).data( 'conductor-query-builder-skip-preview' ) ) {
+			if ( $el && $el.length && $el.hasClass( 'select2-search__field' ) && $el.parents( '.select2-container' ).prev( '.conductor-qb-select2' ).data( 'conductor-query-builder-skip-preview' ) ) {
 				return;
 			}
 
@@ -1069,9 +1069,74 @@ var conductor_query_builder = conductor_query_builder || {};
 			'click .conductor-qb-add-clause-group-button': function( event ) {
 				var $this = $( event.currentTarget ),
 					type = $this.data( 'clause-group-type' ),
+					clause_group_type = this.options.clause_group_type,
 					clause_group_config = conductor_query_builder.clauses[type] && conductor_query_builder.clauses[type]['config'],
+					sub_clause_group_view_instances = conductor_query_builder.Backbone.instances.views.sub_clauses,
+					sub_clause_group_view_index = sub_clause_group_view_instances.map( function( view ) { return view.options.type; } ).indexOf( clause_group_type ),
+					sub_clause_group_view = ( sub_clause_group_view_index !== -1 ) ? sub_clause_group_view_instances[sub_clause_group_view_index] : false,
+					sub_clause_group_view_meta = sub_clause_group_view && sub_clause_group_view.getMeta(),
+					sub_clause_group_view_config = sub_clause_group_view && sub_clause_group_view.getConfig(),
 					limit = ( clause_group_config && clause_group_config['limit'] ) ? parseInt( clause_group_config['limit'], 10 ) : -1,
-					clause_group_view;
+					clause_group_view,
+					is_button_disabled = false;
+
+				// Loop through the sub-clause group view config
+				_.find( sub_clause_group_view_config, function( config, parameter ) {
+					// If the sub-clause group view config has clauses and the sub-clause group view meta value contains this parameters
+					if ( config.clauses && sub_clause_group_view_meta['parameters'] && ( ( _.isArray( sub_clause_group_view_meta['parameters'] ) && sub_clause_group_view_meta['parameters'].indexOf( parameter ) !== -1 ) || sub_clause_group_view_meta['parameters'] === parameter ) ) {
+						// Loop through the sub-clause group view clauses config data
+						_.find( config.clauses, function ( clause_config, clause ) {
+							// If this clause matches the action button type
+							if ( clause === type ) {
+								// If this clause should be disabled
+								if ( clause_config.disabled ) {
+									// Set the disabled button flag
+									is_button_disabled = true;
+								}
+							}
+
+							return is_button_disabled;
+						} );
+					}
+
+					return is_button_disabled;
+				} );
+
+				// If this button isn't disabled and we have action buttons sub-clause group config for this action button
+				if ( ! is_button_disabled && sub_clause_group_view_config && sub_clause_group_view_config['action_buttons'] && sub_clause_group_view_config['action_buttons'][type] ) {
+					// Loop through the columns for this action button config
+					_.find( sub_clause_group_view_config['action_buttons'][type]['columns'], function( config, column ) {
+						// Switch based on the column
+						switch ( column ) {
+							// Parameters
+							case 'parameters':
+								// Loop through the config
+								_.find( config, function( action_button_config, parameter ) {
+									// If the sub-clause group view meta value contains this parameters
+									if ( sub_clause_group_view_meta['parameters'] && ( ( _.isArray( sub_clause_group_view_meta['parameters'] ) && sub_clause_group_view_meta['parameters'].indexOf( parameter ) !== -1 ) || sub_clause_group_view_meta['parameters'] === parameter ) ) {
+										// If this action button should be disabled
+										if ( action_button_config.disabled ) {
+											// Set the disabled button flag
+											is_button_disabled = true;
+										}
+									}
+
+									return is_button_disabled;
+								} );
+								break;
+						}
+
+						return is_button_disabled;
+					} );
+				}
+
+				// Bail if this button is disabled
+				if ( is_button_disabled ) {
+					// Prevent default
+					event.preventDefault();
+
+					return;
+				}
 
 				// Add clause group (grab the new Backbone view)
 				clause_group_view = this.addClauseGroup( event );
@@ -1195,11 +1260,10 @@ var conductor_query_builder = conductor_query_builder || {};
 			// If this clause group supports actions
 			if ( view_arguments.flags.actions ) {
 				// Create a new instance of the Conductor Query Builder Actions Backbone View
-				Conductor_Query_Builder_Clause_Group_Actions_View = new conductor_query_builder.Backbone.Views.Query_Builder_Actions( {
+				Conductor_Query_Builder_Clause_Group_Actions_View = new conductor_query_builder.Backbone.Views.Query_Builder_Actions( _.defaults( {
 					type: 'query-builder-actions',
 					clause_group_type: view_arguments.type,
-					shortcode: this.options.shortcode
-				} );
+				}, _.clone( view_arguments ) ) ); // TODO: Remove _.clone() if not necessary
 				conductor_query_builder.Backbone.instances.views.clause_action_buttons.push( Conductor_Query_Builder_Clause_Group_Actions_View );
 
 				// Attach the Conductor Query Builder Actions Backbone View to the Conductor Query Builder Clause Group Backbone View
@@ -1229,7 +1293,15 @@ var conductor_query_builder = conductor_query_builder || {};
 		 * This function enables a single action button.
 		 */
 		enableActionButton: function( selector ) {
-			var $action_button = this.$el.find( selector );
+			var $action_button = this.$el.find( selector ),
+				clause_group_type = this.options.clause_group_type,
+				sub_clause_group_view_instances = conductor_query_builder.Backbone.instances.views.sub_clauses,
+				sub_clause_group_view_index = sub_clause_group_view_instances.map( function( view ) { return view.options.type; } ).indexOf( clause_group_type ),
+				sub_clause_group_view = ( sub_clause_group_view_index !== -1 ) ? sub_clause_group_view_instances[sub_clause_group_view_index] : false,
+				sub_clause_group_view_meta = sub_clause_group_view && sub_clause_group_view.getMeta(),
+				sub_clause_group_view_type = sub_clause_group_view && sub_clause_group_view.options.type,
+				sub_clause_group_view_config = sub_clause_group_view && sub_clause_group_view.getConfig(),
+				sub_clause_group_config = conductor_query_builder.clauses[clause_group_type] && conductor_query_builder.clauses[clause_group_type]['config'];
 
 			// If we don't have an action button
 			if ( ! $action_button.length ) {
@@ -1247,9 +1319,11 @@ var conductor_query_builder = conductor_query_builder || {};
 					$action_button.each( function() {
 						var $this = $( this ),
 							type = $this.data( 'clause-group-type' ),
-							clause_group_config = conductor_query_builder.clauses[type] && conductor_query_builder.clauses[type]['config'],
-							limit = ( clause_group_config && clause_group_config['limit'] ) ? parseInt( clause_group_config['limit'], 10 ) : -1,
-							clause_group_length = Conductor_Query_Builder_Clause_Group_Collection.where( { type: type } ).length;
+							action_button_clause_group_config = conductor_query_builder.clauses[type] && conductor_query_builder.clauses[type]['config'],
+							limit = ( action_button_clause_group_config && action_button_clause_group_config['limit'] ) ? parseInt( action_button_clause_group_config['limit'], 10 ) : -1,
+							clause_group_length = Conductor_Query_Builder_Clause_Group_Collection.where( { type: type } ).length,
+							can_enable_button,
+							is_button_disabled = false;
 
 						// If we don't have a clause group length, check in meta
 						if ( clause_group_length === 0 ) {
@@ -1259,10 +1333,77 @@ var conductor_query_builder = conductor_query_builder || {};
 							}
 						}
 
-						// If we don't have a limit or the current count less than the limit
-						if ( limit === -1 || clause_group_length < limit ) {
+						// Set the can enable button flag
+						can_enable_button = ( limit === -1 || clause_group_length < limit );
+
+						// If we can enable this button
+						if ( can_enable_button ) {
+							// Loop through the sub-clause group view config
+							_.find( sub_clause_group_view_config, function( config, parameter ) {
+								// If the sub-clause group view config has clauses and the sub-clause group view meta value contains this parameters
+								if ( config.clauses && sub_clause_group_view_meta['parameters'] && ( ( _.isArray( sub_clause_group_view_meta['parameters'] ) && sub_clause_group_view_meta['parameters'].indexOf( parameter ) !== -1 ) || sub_clause_group_view_meta['parameters'] === parameter ) ) {
+									// Loop through the sub-clause group view clauses config data
+									_.find( config.clauses, function ( clause_config, clause ) {
+										// If this clause matches the action button type
+										if ( clause === type ) {
+											// If this clause should be disabled
+											if ( clause_config.disabled ) {
+												// Set the disabled button flag
+												is_button_disabled = true;
+											}
+										}
+
+										return is_button_disabled;
+									} );
+								}
+
+								return is_button_disabled;
+							} );
+
+							// If this button isn't disabled and we have action buttons sub-clause group config for this action button
+							if ( ! is_button_disabled && sub_clause_group_config && sub_clause_group_config['action_buttons'] && sub_clause_group_config['action_buttons'][type] ) {
+								// Loop through the columns for this action button config
+								_.find( sub_clause_group_config['action_buttons'][type]['columns'], function( config, column ) {
+									// Switch based on the column
+									switch ( column ) {
+										// Parameters
+										case 'parameters':
+											// Loop through the config
+											_.find( config, function( action_button_config, parameter ) {
+												// If the sub-clause group view meta value contains this parameters
+												if ( sub_clause_group_view_meta['parameters'] && ( ( _.isArray( sub_clause_group_view_meta['parameters'] ) && sub_clause_group_view_meta['parameters'].indexOf( parameter ) !== -1 ) || sub_clause_group_view_meta['parameters'] === parameter ) ) {
+													// If this action button should be disabled
+													if ( action_button_config.disabled ) {
+														// Set the disabled button flag
+														is_button_disabled = true;
+													}
+												}
+
+												return is_button_disabled;
+											} );
+										break;
+									}
+
+									return is_button_disabled;
+								} );
+							}
+						}
+
+						// If this button is disabled
+						if ( is_button_disabled && can_enable_button ) {
+							// Reset the enable button flag
+							can_enable_button = false;
+						}
+
+						// If we can enable this button
+						if ( can_enable_button ) {
 							// Enable the action button
 							$this.prop( 'disabled', false );
+						}
+						// Otherwise if we can't enable this button, the button is disabled, and the button is currently enabled
+						else if ( ! can_enable_button && is_button_disabled && ! $this.prop( 'disabled' ) ) {
+							// Disable the action button
+							$this.prop( 'disabled', 'disabled' );
 						}
 					} );
 				}
@@ -1400,6 +1541,8 @@ var conductor_query_builder = conductor_query_builder || {};
 				// Remove clause group
 				this.removeClauseGroup( event );
 			},
+			// TODO: Future: If we only have one possible parameter, we need to disable this button and ensure this logic doesn't work
+			// TODO: ^ See enable action buttons logic
 			'click .conductor-qb-add-action-button': 'addSubClauseGroup' // Add sub-clause group
 		},
 		/**
@@ -1714,7 +1857,10 @@ var conductor_query_builder = conductor_query_builder || {};
 				parameters,
 				operators,
 				values,
-				columns = this.model.get( 'columns' );
+				columns = this.model.get( 'columns' ),
+				clause_type = sub_clause_group_view.options.type,
+				sub_clause_group_view_meta = sub_clause_group_view.getMeta(),
+				sub_clause_group_view_config = sub_clause_group_view.getConfig();
 
 			// Switch based on type
 			switch ( type ) {
@@ -1729,10 +1875,7 @@ var conductor_query_builder = conductor_query_builder || {};
 					// Grab the operators
 					operators = this.getOperators( parameters );
 
-					// Grab the values
-					values = this.getValues( value, select_type );
-
-					// Bail if we don't have parameters, operators, an operators select element, or a value
+					// Bail if we don't have operators, an operators select element, or a value
 					if ( ! operators || ! operators.length || ! $operators_select.length || ! value ) {
 						return;
 					}
@@ -1748,10 +1891,16 @@ var conductor_query_builder = conductor_query_builder || {};
 					// Re-initialize Select2 on the operators select element
 					sub_clause_group_view.initializeSelect2( [ 'operators' ] );
 
+					// Grab the values
+					values = this.getValues( value, select_type, $parameters_selected_option );
+
 					// If we have values
 					if ( columns && columns.values && values ) {
 						// Update the values select element
 						this.options.flags.re_init_values = this.updateValuesSelect( $values_select, $values_select_options, values_select_value, values );
+
+						// Re-initialize Select2 on the values select element
+						sub_clause_group_view.initializeSelect2( [ 'values' ] );
 					}
 				break;
 
@@ -1766,6 +1915,9 @@ var conductor_query_builder = conductor_query_builder || {};
 						}
 						// Otherwise if the operator is a Boolean operator
 						else if ( ! $values_select.prop( 'disabled' ) && conductor_query_builder.operators[value] && typeof conductor_query_builder.operators[value] !== 'string' && conductor_query_builder.operators[value].type && conductor_query_builder.operators[value].type === 'bool' ) {
+							// Reset the values select element value
+							$values_select.val( null ).trigger( 'change' );
+
 							// Disable the values select element
 							$values_select.prop( 'disabled', true );
 						}
@@ -1821,6 +1973,40 @@ var conductor_query_builder = conductor_query_builder || {};
 			return count;
 		},
 		/**
+		 * This function returns the FROM sub-clause parameters based on the FROM sub-clause config.
+		 */
+		getFromSubClauseParameters: function( config, meta, clause_type, clause_type_field, select_type ) {
+			var parameters = false;
+			
+			// Bail if we don't have config data or we don't have meta data
+			if ( ! config || ! meta ) {
+				return;
+			}
+
+			// Loop through the sub-clause group view config
+			_.find( config, function( config, parameter ) {
+				// If the sub-clause group view config has clauses and the sub-clause group view meta value contains this parameter
+				if ( config.clauses && meta['parameters'] && ( ( _.isArray( meta['parameters'] ) && meta['parameters'].indexOf( parameter ) !== -1 ) || meta['parameters'] === parameter ) ) {
+					// Loop through the sub-clause group view clauses config data
+					_.find( config.clauses, function ( clause_config, clause ) {
+						// If this clause matches the select type and we have parameters
+						if ( clause === select_type && clause_config['columns'] && clause_config['columns']['parameters'] ) {
+							// Set the parameters
+							parameters = clause_config['columns']['parameters'];
+
+							return true;
+						}
+
+						return false;
+					} );
+				}
+
+				return false;
+			} );
+
+			return parameters;
+		},
+		/**
 		 * This function grabs parameters based on parameters.
 		 */
 		getParameterData: function( value, clause_type, clause_type_field, select_type ) {
@@ -1851,6 +2037,12 @@ var conductor_query_builder = conductor_query_builder || {};
 			return parameters;
 		},
 		/**
+		 * This function returns parameters.
+		 */
+		getParameters: function( parameters ) {
+			return _.isObject( parameters ) ? _.keys( parameters ) : [ parameters ];
+		},
+		/**
 		 * This function grabs operators from parameters.
 		 */
 		getOperators: function( parameters ) {
@@ -1865,23 +2057,121 @@ var conductor_query_builder = conductor_query_builder || {};
 		/**
 		 * This function gets values.
 		 */
-		getValues: function( value, select_type ) {
+		getValues: function( parameter, select_type, $parameters_selected_option ) {
 			// Grab the values for the selected parameter
-			var values = ( typeof value === 'string' ) ? conductor_query_builder.values[value] : false;
+			var values = ( typeof parameter === 'string' ) ? conductor_query_builder.values[parameter] : false,
+				parameters_selected_option_values = ( $parameters_selected_option && $parameters_selected_option.length && $parameters_selected_option.data( 'values' ) ) ? JSON.parse( JSON.stringify( $parameters_selected_option.data( 'values' ) ) ) : false,
+				select_type_all_values;
+
+			// If we don't have values and we have parameters selected option values
+			if ( ! values && parameters_selected_option_values ) {
+				// Set the values
+				values = parameters_selected_option_values;
+			}
 
 			// If we don't have values, check the values data
 			if ( ! values && select_type && conductor_query_builder.values[select_type] ) {
 				// Grab the values for the selected type
 				values = conductor_query_builder.values[select_type];
 
-				// If we have parameters but no operators
-				if ( values && _.isObject( values ) && values.hasOwnProperty( value ) ) {
-					// Grab the values from the selected type data
-					values = values[value];
+				// If we have values, values is an object, and
+				if ( values && _.isObject( values ) ) {
+					// If values has the parameter property
+					if ( values.hasOwnProperty( parameter ) ) {
+						// Grab the values from the selected type data
+						values = values[parameter];
+					}
+					// Otherwise values doesn't have the parameter property
+					else {
+						// Reset values
+						values = [];
+					}
 				}
 			}
 
+			// If we have "all" values
+			if ( conductor_query_builder.values.all && conductor_query_builder.values.all.length ) {
+				// Merge the "all" values with the values
+				values = values.concat( conductor_query_builder.values.all );
+			}
+
+			// Grab the "all" values for this select type
+			select_type_all_values = conductor_query_builder.values[select_type] && conductor_query_builder.values[select_type]['all'];
+
+			// If we have "all" values for this select type
+			if ( select_type_all_values && select_type_all_values.length ) {
+				// Merge the "all" select type values with the values
+				values = values.concat( select_type_all_values );
+			}
+
 			return values;
+		},
+		/**
+		 * This function updates the parameters select element based on parameters.
+		 */
+		// TODO: Future: Adjust this logic to match updateOperatorsSelect() (for disabled selected value)
+		updateParametersSelect: function( $parameters_select, $parameters_select_options, parameters_select_value, parameters, silent ) {
+			// Defaults
+			silent = silent || false;
+			parameters = ( ! parameters ) ? [] : parameters;
+
+			var is_selected_parameter_disabled = ( parameters_select_value && typeof parameters_select_value === 'string' && parameters.length && parameters.indexOf( parameters_select_value ) === -1 ),
+				is_all_selected_parameters_disabled = ( parameters_select_value && typeof parameters_select_value === 'string' && is_selected_parameter_disabled ),
+				disabled_selected_parameters = [],
+				clause_type = this.options.type,
+				clause_type_parameters = ( conductor_query_builder.clauses[clause_type] && conductor_query_builder.clauses[clause_type].parameters ) ? conductor_query_builder.clauses[clause_type].parameters : false,
+				sub_clause_group_view_instances = conductor_query_builder.Backbone.instances.views.sub_clauses,
+				from_sub_clause_group_view_index = sub_clause_group_view_instances.map( function( view ) { return view.options.type; } ).indexOf( 'from' ),
+				from_sub_clause_group_view = ( from_sub_clause_group_view_index !== -1 ) ? sub_clause_group_view_instances[from_sub_clause_group_view_index] : false,
+				from_sub_clause_group_view_meta = from_sub_clause_group_view && from_sub_clause_group_view.getMeta(),
+				from_clause_type_parameters = ( conductor_query_builder.clauses['from'] && conductor_query_builder.clauses['from'].parameters ) ? conductor_query_builder.clauses['from'].parameters : false;
+
+			// If we we have a selected value, the selected value is an array, and not all of the current selected values are disabled
+			if ( parameters_select_value && _.isArray( parameters_select_value ) && ! is_all_selected_parameters_disabled ) {
+				// Loop through the selected value
+				_.each( parameters_select_value, function( parameter ) {
+					// If this parameter is disabled
+					if ( parameters.length && parameters.indexOf( parameter ) === -1 ) {
+						// Add this parameter to the list of disabled selected parameters
+						disabled_selected_parameters.push( parameter );
+					}
+				} );
+
+				// If the all of the selected values are disabled
+				if ( disabled_selected_parameters.length === parameters_select_value.length ) {
+					// Set the all selected parameters disabled flag
+					is_all_selected_parameters_disabled = true;
+				}
+			}
+
+			// If we have a selected value and all of the current selected values are disabled
+			if ( parameters_select_value && is_all_selected_parameters_disabled ) {
+				// Set the value
+				$parameters_select.val( '' );
+			}
+
+			// Loop through all of the parameter option elements
+			$parameters_select_options.each( function() {
+				var $this = $( this ),
+					multiple = $this.prop( 'multiple' ),
+					value = $this.val(),
+					disabled = ( parameters.length && parameters.indexOf( value ) === -1 );
+
+				// Set the disabled property (if this value isn't found in the list of parameters)
+				$this.prop( 'disabled', disabled );
+			} );
+
+			// If we have a selected value and all of the current selected values are disabled
+			if ( parameters_select_value && is_all_selected_parameters_disabled ) {
+				// Select the first enabled option
+				$parameters_select.val( $parameters_select_options.not( ':disabled' ).first().val() );
+
+				// If this isn't a silent event
+				if ( ! silent ) {
+					// Trigger the change event
+					$parameters_select.trigger( 'change' );
+				}
+			}
 		},
 		/**
 		 * This function updates the operators select element based on operators.
@@ -1928,7 +2218,8 @@ var conductor_query_builder = conductor_query_builder || {};
 			_.each( values, function ( value_data, value ) {
 				var option,
 					$option_for_value,
-					option_for_value_label;
+					option_for_value_label,
+					value_data_option_label;
 
 				// Grab the value
 				value = ( ! _.isObject( value_data ) ) ? value_data : value;
@@ -1940,7 +2231,7 @@ var conductor_query_builder = conductor_query_builder || {};
 				// Grab the label from the option
 				option_for_value_label = ( $option_for_value.length ) ? $option_for_value.text() : '';
 
-				// Add this as an option if it doesn't exist
+				// If we don't have an option for this value
 				if ( ! $option_for_value.length ) {
 					// TODO: UnderscoreJS template here
 
@@ -1952,12 +2243,15 @@ var conductor_query_builder = conductor_query_builder || {};
 					// Append the new option
 					$values_select.append( option );
 				}
-				// Otherwise if the option exists, we may need to update the label
+				// Otherwise we have an option for this value
 				else {
+					// Grab the value data option label
+					value_data_option_label = ( ! _.isObject( value_data ) || ! value_data.hasOwnProperty( 'label' ) ) ? value : value_data.label;
+
 					// If the option label doesn't match this value
-					if ( ( ( ! _.isObject( value_data ) || ! value_data.hasOwnProperty( 'label' ) ) && option_for_value_label !== value ) || ( option_for_value_label !== value_data.label ) ) {
+					if ( option_for_value_label !== value_data_option_label ) {
 						// Update the label
-						$option_for_value.text( ( ! _.isObject( value_data ) || ! value_data.hasOwnProperty( 'label' ) ) ? value : value_data.label );
+						$option_for_value.text( value_data_option_label );
 
 						// Set the re-init flag
 						if ( ! re_init_values ) {
@@ -1975,7 +2269,7 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// Determine the index of this option value
 				index = _.findIndex( values, function ( value ) {
-					return ( typeof value === 'string' ) ? value == option_value : value.value == option_value;
+					return ( typeof value === 'string' ) ? value === option_value : value.value === option_value;
 				} );
 
 				// If this option shouldn't exist
@@ -1984,7 +2278,7 @@ var conductor_query_builder = conductor_query_builder || {};
 					$this.remove();
 
 					// If this option value matches a selected value
-					if ( value && ( ( typeof value === 'string' && option_value == value ) || ( typeof value !== 'string' && value.length && value.indexOf( option_value ) !== -1 ) ) ) {
+					if ( value && ( ( typeof value === 'string' && option_value === value ) || ( typeof value !== 'string' && value.length && value.indexOf( option_value ) !== -1 ) ) ) {
 						// String
 						if ( typeof value === 'string' ) {
 							value = '';
@@ -2030,8 +2324,8 @@ var conductor_query_builder = conductor_query_builder || {};
 		events: {
 			'click .conductor-qb-remove-action-button': 'removeSubClauseGroup', // Remove sub-clause group
 			'change .conductor-qb-select2': 'select2Change', // Select2 change
-			'select2:select .conductor-qb-select2': 'select2SelectUnselect', // Select2 select/un-select
-			'select2:unselect .conductor-qb-select2': 'select2SelectUnselect', // Select2 select/un-select
+			'select2:select .conductor-qb-select2': 'select2SelectUnselect', // Select2 select
+			'select2:unselect .conductor-qb-select2': 'select2SelectUnselect', // Select2 unselect
 			'select2:close .conductor-qb-select2': function( event ) {
 				var $this = $( event.currentTarget );
 
@@ -2118,7 +2412,10 @@ var conductor_query_builder = conductor_query_builder || {};
 				'select2Change',
 				'select2SelectUnselect',
 				'select2Close',
+				'getMeta',
 				'setMetaValue',
+				'getConfig',
+				'setConfig',
 				'getCurrentCount'
 			);
 
@@ -2165,22 +2462,47 @@ var conductor_query_builder = conductor_query_builder || {};
 			/*
 			 * Event Listeners
 			 */
+			this.listenToOnce( this, 'ready', this.initializeConfigs ); // Initialize configurations when the view is ready (once)
 			this.listenToOnce( this, 'ready', this.initializeSelect2 ); // Initialize Select2 when the view is ready (once)
 			this.listenToOnce( this, 'ready', this.maybeEnableActionButtons ); // After initializing Select2, maybe toggle action buttons when the view is ready (once)
 			this.listenToOnce( this, 'ready', this.maybeSetModelID ); // Maybe set the model ID when the view is ready (once)
 			this.listenToOnce( this, 'ready', this.maybeSetModelParentData ); // Maybe set the model parent data when the view is ready (once)
 		},
 		/**
+		 * This function initializes configurations.
+		 */
+		initializeConfigs: function() {
+			var self = this,
+				$select2 = this.$el.find( this.select2_selector );
+
+			// Loop through Select2 elements
+			$select2.each( function() {
+				var $this = $( this ),
+					$current_option = $this.find( 'option:selected:first' ),
+					id = $current_option.val(),
+					current_option_config = $current_option.data( 'config' );
+
+				// If the current option has a config
+				if ( current_option_config ) {
+					// Set the config for the current option
+					self.setConfig( id, current_option_config );
+				}
+			} );
+		},
+		/**
 		 * This function initializes Select2.
 		 */
-		initializeSelect2: function( types ) {
+		initializeSelect2: function( types, silent ) {
 			// Defaults
 			types = types || [];
+			silent = ( silent === false ) ? silent : ( ! silent );
 
 			var self = this,
 				$select2 = this.$el.find( this.select2_selector ),
 				selected_parameter,
 				selected_parameter_field,
+				$parameters_select = $select2.filter( '[data-type="parameters"]' ),
+				$parameters_select_options = $parameters_select.find( 'option' ),
 				$operators_select = $select2.filter( '[data-type="operators"]' ),
 				$operators_select_options = $operators_select.find( 'option' ),
 				$values_select = $select2.filter( '[data-type="values"]' ),
@@ -2188,7 +2510,15 @@ var conductor_query_builder = conductor_query_builder || {};
 				parameters,
 				operators,
 				values,
-				columns = this.views.parent.model.get( 'columns' );
+				columns = this.views.parent.model.get( 'columns' ),
+				from_sub_clause_parameters,
+				parameters_for_parameters_select,
+				sub_clause_group_view_instances = conductor_query_builder.Backbone.instances.views.sub_clauses,
+				sub_clause_group_view_index = sub_clause_group_view_instances.map( function( view ) { return view.options.type; } ).indexOf( 'from' ),
+				sub_clause_group_view = ( sub_clause_group_view_index !== -1 ) ? sub_clause_group_view_instances[sub_clause_group_view_index] : false,
+				sub_clause_group_view_meta = sub_clause_group_view && sub_clause_group_view.getMeta(),
+				sub_clause_group_view_type = sub_clause_group_view && sub_clause_group_view.options.type,
+				sub_clause_group_view_config = sub_clause_group_view && sub_clause_group_view.getConfig();
 
 			// Store a reference to all Select2 elements on this view
 			this.$select2 = $select2;
@@ -2243,21 +2573,19 @@ var conductor_query_builder = conductor_query_builder || {};
 							switch ( type ) {
 								// Values
 								case 'values':
-									// TODO: Add a check here to determine if this clause group supports values
-
 									// Grab the parameters
 									parameters = self.views.parent.getParameterData( value, ( selected_parameter ) ? selected_parameter : meta.parameters, selected_parameter_field, select_type );
 
 									// Grab the operators
 									operators = self.views.parent.getOperators( parameters );
 
-									// Grab the values
-									values = self.views.parent.getValues( ( selected_parameter ) ? selected_parameter : meta.parameters, select_type );
-
 									// If we have operators and an operators select element
 									if ( operators && operators.length && $operators_select.length ) {
 										// Update the operators select element
 										self.views.parent.updateOperatorsSelect( $operators_select, $operators_select_options, ( meta.operators && typeof meta.operators === 'string' ) ? meta.operators : meta.operators.slice( 0 ), operators, true );
+
+										// Grab the values
+										values = self.views.parent.getValues( ( selected_parameter ) ? selected_parameter : meta.parameters, select_type, $parameters_select_options.filter( ':selected' ) );
 
 										// If we have values
 										if ( columns && columns.values && values ) {
@@ -2318,7 +2646,7 @@ var conductor_query_builder = conductor_query_builder || {};
 					$this.select2( 'close' );
 				}
 
-				// Initialize Select2
+				// Initialize Select2 using the Conductor Query Builder Select2 library
 				$this.conductor_qb_select2( select2_args );
 
 				// Switch based on type
@@ -2343,6 +2671,33 @@ var conductor_query_builder = conductor_query_builder || {};
 							selected_parameter_field = ( selected_parameter_field && selected_parameter_field[selected_parameter] && selected_parameter_field[selected_parameter].field ) ? selected_parameter_field[selected_parameter].field : false;
 						}
 
+						// Grab the FROM sub-clause parameters
+						from_sub_clause_parameters = self.views.parent.getFromSubClauseParameters( sub_clause_group_view_config, sub_clause_group_view_meta, ( selected_parameter ) ? selected_parameter : meta.parameters, selected_parameter_field, select_type );
+
+						// Set the parameters for the parameters select element
+						parameters_for_parameters_select = ( from_sub_clause_parameters ) ? from_sub_clause_parameters : ( ( conductor_query_builder.clauses[select_type] && conductor_query_builder.clauses[select_type].parameters ) ? self.views.parent.getParameters( conductor_query_builder.clauses[select_type].parameters ) : false );
+
+						// If we have the parameters for the parameters select element
+						if ( parameters_for_parameters_select ) {
+							// Grab the meta
+							meta = self.getMeta();
+
+							// If we have parameters but not a selected parameter field yet
+							if ( meta.parameters ) {
+								// Grab the first selected parameter
+								selected_parameter = meta.parameters.slice( 0 );
+
+								selected_parameter_field = ( selected_parameter && conductor_query_builder.clauses[select_type] && conductor_query_builder.clauses[select_type].parameters && conductor_query_builder.clauses[select_type].parameters ) ? conductor_query_builder.clauses[select_type].parameters : false;
+								selected_parameter_field = ( selected_parameter_field && selected_parameter_field[selected_parameter] && selected_parameter_field[selected_parameter].field ) ? selected_parameter_field[selected_parameter].field : false;
+							}
+						}
+
+						// Update the parameters select element
+						self.views.parent.updateParametersSelect( $parameters_select, $parameters_select_options, value, parameters_for_parameters_select, silent );
+
+						// Update the value
+						value = $this.val();
+
 						// Grab the parameters
 						parameters = ( ! parameters ) ? self.views.parent.getParameterData( value, ( selected_parameter ) ? selected_parameter : meta.parameters, selected_parameter_field, select_type ) : parameters;
 
@@ -2352,12 +2707,27 @@ var conductor_query_builder = conductor_query_builder || {};
 						// If we have operators and an operators select element
 						if ( operators && operators.length && $operators_select.length ) {
 							// Update the operators select element
-							self.views.parent.updateOperatorsSelect( $operators_select, $operators_select_options, ( meta.operators ) ? ( ( meta.operators && typeof meta.operators === 'string' ) ? meta.operators : meta.operators.slice( 0 ) ) : '', operators, true );
+							self.views.parent.updateOperatorsSelect( $operators_select, $operators_select_options, ( meta.operators ) ? ( ( meta.operators && typeof meta.operators === 'string' ) ? meta.operators : meta.operators.slice( 0 ) ) : '', operators, silent );
 						}
 					break;
 
 					// Operators
 					case 'operators':
+						// Update the meta
+						meta = self.getMeta();
+
+						// Grab the parameters
+						parameters = ( ! parameters ) ? self.views.parent.getParameterData( meta.parameters, ( selected_parameter ) ? selected_parameter : meta.parameters, selected_parameter_field, select_type ) : parameters;
+
+						// Grab the operators
+						operators = ( ! operators && parameters ) ? self.views.parent.getOperators( parameters ) : operators;
+
+						// If we have operators and an operators select element
+						if ( operators && operators.length && $operators_select.length ) {
+							// Update the operators select element
+							self.views.parent.updateOperatorsSelect( $operators_select, $operators_select_options, ( meta.operators ) ? ( ( meta.operators && typeof meta.operators === 'string' ) ? meta.operators : meta.operators.slice( 0 ) ) : '', operators, silent );
+						}
+
 						// If this clause group supports values
 						if ( columns && columns.values ) {
 							// If the operator isn't a Boolean operator
@@ -2367,6 +2737,9 @@ var conductor_query_builder = conductor_query_builder || {};
 							}
 							// Otherwise if the operator is a Boolean operator
 							else if ( ! $values_select.prop( 'disabled' ) && conductor_query_builder.operators[value] && typeof conductor_query_builder.operators[value] !== 'string' && conductor_query_builder.operators[value].type && conductor_query_builder.operators[value].type === 'bool' ) {
+								// Reset the values select element value
+								$values_select.val( null ).trigger( 'change' );
+
 								// Disable the values select element
 								$values_select.prop( 'disabled', true );
 							}
@@ -2398,6 +2771,14 @@ var conductor_query_builder = conductor_query_builder || {};
 						}
 					break;
 				}
+
+				/*
+				 * Initialize Select2 using the Conductor Query Builder Select2 library.
+				 *
+				 * We're calling this again to ensure previously selected items that are now disabled
+				 * are removed from available Select2 options.
+				 */
+				$this.conductor_qb_select2( select2_args );
 
 				// Grab the Select2 instance
 				Select2 = $this.data( 'select2' );
@@ -2435,7 +2816,7 @@ var conductor_query_builder = conductor_query_builder || {};
 		},
 		/**
 		 * This function enables action buttons after the initial Select2 initialization if the
-		 * select elements support toggling action buttons and a value exists .
+		 * select elements support toggling action buttons and a value exists.
 		 */
 		maybeEnableActionButtons: function() {
 			var $select2 = this.$el.find( this.select2_selector );
@@ -2448,8 +2829,8 @@ var conductor_query_builder = conductor_query_builder || {};
 
 				// If we should toggle the action buttons
 				if ( toggle_action_buttons ) {
-					// If we have a selection
-					if ( value && value.length ) {
+					// If we have a value
+					if ( value || ( _.isArray( value ) && value.length ) ) {
 						// TODO: Transition to "conductor-query-builder-{event}" event name
 						// Trigger the "conductor-qb-enable-action-buttons" event on the Conductor Query Builder Actions View
 						Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-enable-action-buttons' );
@@ -2695,13 +3076,163 @@ var conductor_query_builder = conductor_query_builder || {};
 			var $this = $( event.currentTarget ),
 				Select2 = $this.data( 'select2' ),
 				value = $this.val(),
+				type = $this.data( 'type' );
+
+			// Store the value on the model and view
+			this.setMetaValue( type, value );
+
+			// Call select2Change() on the parent view
+			this.views.parent.select2Change( event, this );
+		},
+		/**
+		 * This function runs when a Select2 option is selected or unselected.
+		 */
+		select2SelectUnselect: function( event ) {
+			var $this = $( event.currentTarget ),
+				$widget_parent = $this.parents( '.widget' ),
+				value = $this.val(),
+				$selected_options = $this.find( 'option:selected' ),
+				index = -1,
+				multiple = $this.prop( 'multiple' ),
+				selected_options = $this.data( 'selected-options' ) || [],
 				type = $this.data( 'type' ),
-				toggle_action_buttons = $this.data( 'toggle-action-buttons' );
+				id = event.params.data.id,
+				$current_option = $this.find( 'option[value="' + id + '"]' ),
+				current_option_config = $current_option.data( 'config' ),
+				selected_options_config_for_type = {},
+				default_select2_config = this.options.columns && this.options.columns[type] && this.options.columns[type].select2,
+				toggle_action_buttons = $this.data( 'toggle-action-buttons' ),
+				clause_type = this.options.type,
+				sub_clause_group_view_instances = conductor_query_builder.Backbone.instances.views.sub_clauses,
+				$conductor_select_content_type,
+				conductor_select_content_type_value,
+				self = this;
+
+			// Loop through the selected options
+			_.each( $selected_options, function( selected_option_el ) {
+				var $selected_option = $( selected_option_el ),
+					selected_option_config = $selected_option.data( 'config' ),
+					selected_option_value = $selected_option.attr( 'value' );
+
+				// If we have the selected option config
+				if ( selected_option_config ) {
+					// Add this selected option config to the selected options config data
+					selected_options_config_for_type[selected_option_value] = selected_option_config.columns && selected_option_config.columns[type] && selected_option_config.columns[type].select2;
+				}
+			} );
+
+			// If the current option has a config
+			if ( current_option_config ) {
+				// Add the current option config to the selected options config
+				selected_options_config_for_type[id] = current_option_config.columns && current_option_config.columns[type] && current_option_config.columns[type].select2;
+
+				// Set the config for the current option
+				this.setConfig( id, current_option_config );
+			}
+
+			// If we have a selected options config for this ID
+			if ( selected_options_config_for_type[id] ) {
+				// Loop through the selected option config for this ID
+				_.each( selected_options_config_for_type[id], function( the_value, property ) {
+					var can_trigger_change_event = false;
+
+					// Switch based on the property
+					switch ( property ) {
+						// Multiple
+						case 'multiple':
+							// If this select element currently allows multiple options to be selected and the multiple config data isn't set
+							if ( multiple && ! the_value ) {
+								// Loop through the selected options
+								$selected_options.each( function() {
+									var $the_selected_option = $( this );
+
+									// If this isn't the selected option
+									if ( $the_selected_option[0] !== $current_option[0] ) {
+										// Reset the selected property on this selected option
+										$the_selected_option.prop( 'selected', false );
+
+										// If the can trigger change event flag isn't set
+										if ( ! can_trigger_change_event ) {
+											// Set the can trigger change event flag
+											can_trigger_change_event = true;
+										}
+									}
+								} );
+
+								// Reset the multiple property on this select element
+								$this.prop( 'multiple', the_value );
+
+								// If we can trigger the change event
+								if ( can_trigger_change_event ) {
+									// Trigger the "change" event on this select element
+									$this.trigger( 'change' );
+								}
+							}
+							// Otherwise if this select element doesn't currently allow multiple options to be selected and the multiple config data is set
+							else if ( ! multiple && the_value ) {
+								// Set the multiple property on this select element
+								$this.prop( 'multiple', the_value );
+							}
+
+							// If this is a Select2 unselect event
+							if ( event.type === 'select2:unselect' ) {
+								// Reset the selected property on the selected option
+								$current_option.prop( 'selected', false );
+
+								// Reset the config for the current option
+								self.setConfig( id, false );
+
+								// If we have default Select2 config data and this value doesn't match the default Select2 config value
+								if ( default_select2_config && typeof default_select2_config[property] !== 'undefined' && the_value !== default_select2_config[property] ) {
+									// Reset the multiple property on this select element
+									$this.prop( 'multiple', default_select2_config[property] );
+								}
+
+								// If the selected option doesn't allow for multiple values
+								if ( ! the_value ) {
+									// Reset the value on this select element
+									$this.val( [] );
+
+									// Set the value
+									value = $this.val();
+								}
+
+								// Trigger the "change" event on this select element
+								$this.trigger( 'change' );
+							}
+						break;
+					}
+				} );
+			}
+			// Otherwise if we have a default Select2 config
+			else if ( default_select2_config ) {
+				// Loop through the default Select2 config
+				_.each( default_select2_config, function( value, property ) {
+					// Switch based on the property
+					switch ( property ) {
+						// Multiple
+						case 'multiple':
+							// If this select element currently allows multiple options to be selected and the multiple config data isn't set
+							if ( multiple && ! value ) {
+								// Reset the multiple property on this select element
+								$this.prop( 'multiple', value );
+
+								// TODO: Future: Only allow the selected option to be set here (remove selected from other selected options)?
+							}
+							// Otherwise if this select element doesn't currently allow multiple options to be selected and the multiple config data is set
+							else if ( ! multiple && value ) {
+								// Set the multiple property on this select element
+								$this.prop( 'multiple', value );
+							}
+							break;
+					}
+				} );
+			}
 
 			// If we should toggle the action buttons
 			if ( toggle_action_buttons ) {
-				// If we have a selection
-				if ( value && value.length ) {
+				// If we have a value
+				if ( value || ( _.isArray( value ) && value.length ) ) {
 					// TODO: Transition to "conductor-query-builder-{event}" event name
 					// Trigger the conductor-qb-enable-action-buttons event on the Conductor Query Builder Actions View
 					Conductor_Query_Builder_Actions_View.trigger( 'conductor-qb-enable-action-buttons' );
@@ -2728,54 +3259,136 @@ var conductor_query_builder = conductor_query_builder || {};
 				}
 			}
 
-			// Store the value on the model and view
-			this.setMetaValue( type, value );
+			// If this is the FROM clause type
+			if ( clause_type === 'from' ) {
+				// Grab the Conductor select content type element
+				$conductor_select_content_type = Conductor_Query_Builder_View.$el.find( '.conductor-select-content-type' );
 
-			// Call select2Change() on the parent view
-			this.views.parent.select2Change( event, this );
-		},
-		/**
-		 * This function runs when a Select2 option is selected or unselected.
-		 */
-		select2SelectUnselect: function( event ) {
-			var $this = $( event.currentTarget ),
-				index = -1,
-				multiple = $this.prop( 'multiple' ),
-				selected_options = $this.data( 'selected-options' ) || [],
-				type = $this.data( 'type' ),
-				value = event.params.data.id;
+				// Grab the Conductor select content type value
+				conductor_select_content_type_value = ( multiple && value ) ? value[( value.length - 1 )]: value;
 
-			// Bail if this isn't a values select element or this isn't a multiple select element
-			if ( type !== 'values' || ! multiple ) {
-				return;
-			}
+				// If we have a Conductor select content type value
+				if ( conductor_select_content_type_value ) {
+					// Set the Conductor select content type value
+					$conductor_select_content_type.val( conductor_select_content_type_value ).trigger( 'change' );
+				}
+				// Otherwise we don't have a Conductor select content type value
+				else {
+					// Set the Conductor select content type value to the first option value
+					$conductor_select_content_type.val( $conductor_select_content_type.find( 'option:first' ).val() ).trigger( 'change' );
+				}
 
-			// Switch based on event type
-			switch ( event.type ) {
-				// Select2 Select
-				case 'select2:select':
-					// Add the selected value to the selected data
-					selected_options.push( value );
-				break;
+				// If this a Select2 select event
+				if ( event.type === 'select2:select' ) {
+					// If we have current option config data
+					if ( current_option_config && event.type === 'select2:select' ) {
+						// Loop through the current option config
+						_.each( current_option_config, function( clauses ) {
+							// Loop through the current option config clauses
+							_.each( clauses, function( clause_group_config, clause_group ) {
+								// If this clause group is disabled
+								if ( clause_group_config.disabled ) {
+									// If we have models in the clause group collection
+									if ( Conductor_Query_Builder_Clause_Group_Collection.length ) {
+										// Loop through the clause group collection models
+										Conductor_Query_Builder_Clause_Group_Collection.each( function( model ) {
+											var views;
 
-				// Select2 Un-Select
-				case 'select2:unselect':
-					// Grab the index for the un-selected element
-					index = selected_options.indexOf( value );
+											// If we have a model and this model type matches this clause group
+											if ( model && model.get( 'type' ) === clause_group ) {
+												// Grab all of the clause group views associated with this model's element selector
+												views = Conductor_Query_Builder_View.views.get( model.get( 'el_selector' ) );
 
-					// If we have a valid index
-					if ( index !== -1 ) {
-						// Splice (remove) the un-selected element from the selected data
-						selected_options.splice( index , 1 );
+												// If we have views
+												if ( views.length ) {
+													// Loop through views
+													_.each( views, function ( view ) {
+														// If this view model ID matches this model ID
+														if ( view.model.get( 'id' ) === model.get( 'id' ) ) {
+															// Force remove this clause group
+															view.removeClauseGroup( false, true );
+														}
+													} );
+												}
+											}
+										} );
+									}
+								}
+							} );
+						} );
+
+						// Grab the sub-clause group view instances
+						sub_clause_group_view_instances = conductor_query_builder.Backbone.instances.views.sub_clauses;
 					}
-				break;
+				}
+
+				// If this is the parameters select element
+				if ( type === 'parameters' ) {
+					// Loop through all of the sub-clause group vew
+					_.each( sub_clause_group_view_instances, function ( the_sub_clause_group_view ) {
+						// If this isn't the FROM sub-clause group view
+						if ( the_sub_clause_group_view.options.type !== clause_type ) {
+							// Re-initialize Select2 on the parameters select element (not silent)
+							the_sub_clause_group_view.initializeSelect2( [ 'parameters', 'operators' ], false );
+						}
+					} );
+				}
 			}
 
-			// Set the selected data on the select element
-			$this.data( 'selected', selected_options ).attr( 'selected-options', JSON.stringify( selected_options ) );
+			// If this is a values select element and this values select element supports multiple selections
+			if ( type === 'values' && multiple ) {
+				// Switch based on event type
+				switch ( event.type ) {
+					// Select2 Select
+					case 'select2:select':
+						// Add the selected value to the selected data
+						selected_options.push( id );
+					break;
 
-			// Loop through the selected values
-			this.updateSelect2Options( $this );
+					// Select2 Un-Select
+					case 'select2:unselect':
+						// Grab the index for the un-selected element
+						index = selected_options.indexOf( id );
+
+						// If we have a valid index
+						if ( index !== -1 ) {
+							// Splice (remove) the un-selected element from the selected data
+							selected_options.splice( index , 1 );
+						}
+					break;
+				}
+
+				// Set the selected data on the select element
+				$this.data( 'selected', selected_options ).attr( 'selected-options', JSON.stringify( selected_options ) );
+
+				// Update the Select2 options
+				this.updateSelect2Options( $this );
+			}
+
+			// Trigger the "conductor-query-builder:select2-select-unselect" event on the widget parent element
+			$widget_parent.trigger( 'conductor-query-builder:select2-select-unselect', [
+				$this,
+				event,
+				clause_type,
+				type,
+				value,
+				id,
+				multiple,
+				selected_options_config_for_type,
+				self
+			] );
+
+			// Trigger the "conductor-query-builder:select2-select-unselect" this view
+			self.trigger( 'conductor-query-builder:select2-select-unselect', [
+				$this,
+				event,
+				value,
+				id,
+				multiple,
+				clause_type,
+				selected_options_config_for_type,
+				self
+			] );
 		},
 		/**
 		 * This function is triggered when the Select2 dropdown closes.
@@ -2873,6 +3486,27 @@ var conductor_query_builder = conductor_query_builder || {};
 					conductor_query_builder.meta[clause_group_type][parent_count][count][type] = value;
 				}
 			}
+		},
+		/**
+		 * This function returns the config associated with this sub-clause group.
+		 */
+		getConfig: function() {
+			return this.model.get( 'config' );
+		},
+		/**
+		 * This function sets the config on this sub-claus group.
+		 */
+		setConfig: function( id, config_data ) {
+			var config = this.getConfig();
+
+			// Update the value
+			config[id] = config_data;
+
+			// Set the config on the model
+			this.model.set( 'config', config );
+
+			// Set the config on the view
+			this.options.config = config;
 		},
 		/**
 		 * This function grabs the current view count for this sub-clause group type.
@@ -3772,6 +4406,7 @@ var conductor_query_builder = conductor_query_builder || {};
 		 */
 		$form.submit( function( event ) {
 			var $conductor_qb_select2 = $( '.conductor-qb-select2' );
+
 			// Loop through all Conductor Query Builder Select2 elements
 			$conductor_qb_select2.each( function() {
 				var $this = $( this ),

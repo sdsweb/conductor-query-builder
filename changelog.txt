@@ -2,9 +2,17 @@
 Plugin: Conductor Query Builder Add-On
 Author: Slocum Themes/Slocum Design Studio
 Author URI: https://conductorplugin.com/
-Current Version: 1.0.5
+Current Version: 1.0.6
 ==========================================
 
+
+1.0.6 // May 20 2019
+--------------------
+- Introduce query tags
+- Fixed a bug where adjusting query arguments in the advanced query builder did not properly trigger
+  a preview query event in some cases
+- Added logic to allow [FROM] parameter option elements to have configuration data via the "data-config"
+  HTML5 attribute
 
 1.0.5 // February 01 2019
 -------------------------
